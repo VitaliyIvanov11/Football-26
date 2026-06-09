@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="WC 2026">
+<meta name="theme-color" content="#0a0a14">
+<title>FIFA World Cup 2026 – Live</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0a0a14;color:#eaeaea;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+header{background:linear-gradient(135deg,#0a1628 0%,#1a2d55 50%,#0a1628 100%);border-bottom:2px solid #c8a84b;padding:18px 16px 14px;text-align:center}
+.header-eyebrow{font-size:10px;letter-spacing:4px;color:#c8a84b;text-transform:uppercase;margin-bottom:5px}
+h1{font-size:22px;font-weight:900;letter-spacing:1px;color:#fff}
+.header-info{margin-top:5px;font-size:11px;color:#8fa3c8}
+.status-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:#0d1520;border-bottom:1px solid #1a2535;font-size:11px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#555;display:inline-block;margin-right:6px;transition:background .3s}
+.status-dot.live{background:#27ae60;animation:pulse 1.5s infinite}
+.status-dot.error{background:#e63946}
+.status-dot.loading{background:#f39c12;animation:pulse 0.8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.status-txt{color:#6a8ab0}
+.refresh-btn{background:#1a2d55;border:1px solid #2a3a5a;border-radius:6px;padding:4px 10px;color:#8fa3c8;font-size:11px;cursor:pointer}
+.refresh-btn:active{background:#2a3d65}
+.search-wrap{padding:10px 16px 0}
+.search-wrap input{width:100%;background:#161628;border:1px solid #2a3a5a;border-radius:8px;padding:9px 14px;color:#eaeaea;font-size:14px;outline:none}
+.tabs{display:flex;border-bottom:1px solid #1e2a45;margin:10px 0 0}
+.tab{flex:1;padding:9px 4px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;border:none;cursor:pointer;background:transparent;color:#6a8ab0;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{background:#c8a84b;color:#0a0a14;border-bottom:2px solid #c8a84b;border-radius:6px 6px 0 0}
+.content{padding:0 16px 80px}
+.filters{display:flex;gap:6px;flex-wrap:wrap;padding:12px 0 8px}
+.filter-btn{padding:5px 10px;border-radius:20px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:#1a2235;color:#8fa3c8;transition:all .15s}
+.filter-btn.active{color:#fff}
+.count{font-size:11px;color:#4a6080;margin-bottom:8px}
+/* Match card */
+.match-card{background:#10192a;border-radius:10px;margin-bottom:8px;padding:11px 13px;border-left:3px solid #2a3a5a;transition:border-color .2s}
+.card-top{display:flex;align-items:center;gap:8px}
+.group-badge{min-width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;flex-shrink:0}
+.teams-block{flex:1;min-width:0}
+.team-line{display:flex;align-items:center;gap:6px;padding:2px 0}
+.team-flag{font-size:15px;flex-shrink:0}
+.team-name{font-size:13px;font-weight:700;color:#ddeeff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team-score{font-size:18px;font-weight:900;min-width:24px;text-align:right;color:#fff}
+.team-score.winner{color:#c8a84b}
+.score-divider{font-size:10px;color:#4a6080;text-align:right;padding-right:0;min-width:24px}
+.vs-badge{font-size:10px;color:#4a6080;min-width:24px;text-align:right}
+.card-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:5px}
+.venue-txt{font-size:10px;color:#5a7fa8}
+.date-txt{font-size:11px;font-weight:800;color:#c8a84b}
+.day-txt{font-size:10px;color:#4a6080}
+/* Status badges */
+.status-badge{font-size:9px;font-weight:800;letter-spacing:1px;padding:2px 6px;border-radius:4px;text-transform:uppercase}
+.badge-live{background:#27ae60;color:#fff;animation:pulse 1.5s infinite}
+.badge-ft{background:#2a3a5a;color:#8fa3c8}
+.badge-sched{background:#1a2235;color:#5a7fa8}
+.badge-ht{background:#e67e22;color:#fff}
+/* Groups table */
+.groups-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:14px}
+.group-box{background:#10192a;border-radius:10px;padding:11px 13px}
+.group-title{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:7px}
+.team-row-g{display:flex;align-items:center;gap:7px;padding:3px 0;border-bottom:1px solid #1e2a3a}
+.team-row-g:last-child{border-bottom:none}
+.team-name-g{font-size:12px;color:#ddeeff;flex:1}
+.team-name-g.tbd{color:#6a8ab0;font-size:11px}
+.playoff-tag{font-size:9px;color:#4a6080}
+/* Standings */
+.standings-wrap{padding-top:14px}
+.standings-group{background:#10192a;border-radius:10px;margin-bottom:10px;overflow:hidden}
+.standings-header{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #1a2535}
+.standings-title{font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase}
+.standings-table{width:100%;border-collapse:collapse}
+.standings-table th{font-size:9px;color:#4a6080;text-align:center;padding:5px 4px;letter-spacing:.5px;text-transform:uppercase}
+.standings-table th:first-child{text-align:left;padding-left:12px}
+.standings-table td{font-size:11px;text-align:center;padding:6px 4px;border-top:1px solid #111c2a}
+.standings-table td:first-child{text-align:left;padding-left:12px}
+.standings-table tr.qualified td{background:#0d1f12}
+.standings-table tr.maybe td{background:#1a1508}
+.pos-num{color:#6a8ab0;font-size:10px;margin-right:6px}
+.info-box{margin-top:14px;padding:11px;background:#0e1520;border-radius:8px;font-size:11px;color:#6a8ab0;line-height:1.7}
+.info-box strong{color:#c8a84b}
+.loader{text-align:center;padding:40px 20px;color:#4a6080;font-size:13px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-eyebrow">FIFA</div>
+  <h1>World Cup 2026 🏆</h1>
+  <div class="header-info">11.06 – 19.07 &nbsp;·&nbsp; 🇺🇸🇨🇦🇲🇽 &nbsp;·&nbsp; 104 spēles</div>
+</header>
+
+<div class="status-bar">
+  <div>
+    <span class="status-dot" id="statusDot"></span>
+    <span class="status-txt" id="statusTxt">Ielādē...</span>
+  </div>
+  <button class="refresh-btn" onclick="loadData()">↻ Atjaunināt</button>
+</div>
+
+<div class="search-wrap">
+  <input type="text" id="searchInput" placeholder="🔍 Meklēt komandu, pilsētu..." oninput="renderCurrent()">
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('results')">Rezultāti</button>
+  <button class="tab" onclick="switchTab('schedule')">Grafiks</button>
+  <button class="tab" onclick="switchTab('standings')">Tabula</button>
+  <button class="tab" onclick="switchTab('groups')">Grupas</button>
+</div>
+
+<div class="content">
+  <div id="tab-results"><div class="loader" id="loaderResults">⏳ Ielādē datus...</div></div>
+  <div id="tab-schedule" class="hidden"><div class="loader" id="loaderSchedule">⏳ Ielādē datus...</div></div>
+  <div id="tab-standings" class="hidden"><div class="loader" id="loaderStandings">⏳ Ielādē datus...</div></div>
+  <div id="tab-groups" class="hidden"></div>
+</div>
+
+<script>
+// ── Static data ──────────────────────────────────────────────────────────────
+const GC={A:"#e63946",B:"#e67e22",C:"#27ae60",D:"#2980b9",E:"#8e44ad",F:"#16a085",G:"#c0392b",H:"#f39c12",I:"#1abc9c",J:"#2c3e50",K:"#7f8c8d",L:"#6c3483"};
+const VF={US:"🇺🇸",CA:"🇨🇦",MX:"🇲🇽"};
+const FLAGS={Mexico:"🇲🇽","South Korea":"🇰🇷","South Africa":"🇿🇦",Canada:"🇨🇦",Switzerland:"🇨🇭",Qatar:"🇶🇦",Brazil:"🇧🇷",Morocco:"🇲🇦",Scotland:"🏴󠁧󠁢󠁳󠁣󠁴󠁿",Haiti:"🇭🇹",USA:"🇺🇸",Australia:"🇦🇺",Paraguay:"🇵🇾",Germany:"🇩🇪",Ecuador:"🇪🇨","Ivory Coast":"🇨🇮","Curaçao":"🇨🇼",Netherlands:"🇳🇱",Japan:"🇯🇵",Tunisia:"🇹🇳",Belgium:"🇧🇪",Iran:"🇮🇷",Egypt:"🇪🇬","New Zealand":"🇳🇿",Spain:"🇪🇸",Uruguay:"🇺🇾","Saudi Arabia":"🇸🇦","Cape Verde":"🇨🇻",France:"🇫🇷",Senegal:"🇸🇳",Norway:"🇳🇴",Argentina:"🇦🇷",Algeria:"🇩🇿",Austria:"🇦🇹",Jordan:"🇯🇴",Portugal:"🇵🇹",Colombia:"🇨🇴",Uzbekistan:"🇺🇿",England:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",Croatia:"🇭🇷",Panama:"🇵🇦",Ghana:"🇬🇭","Czech Republic":"🇨🇿","Bosnia & Herzegovina":"🇧🇦",Turkey:"🇹🇷",Sweden:"🇸🇪","DR Congo":"🇨🇩",Iraq:"🇮🇶"};
+const GROUPS_STATIC={A:["Mexico","South Korea","South Africa","Czech Republic"],B:["Canada","Switzerland","Qatar","Bosnia & Herzegovina"],C:["Brazil","Morocco","Scotland","Haiti"],D:["USA","Australia","Paraguay","Turkey"],E:["Germany","Ecuador","Ivory Coast","Curaçao"],F:["Netherlands","Japan","Tunisia","Sweden"],G:["Belgium","Iran","Egypt","New Zealand"],H:["Spain","Uruguay","Saudi Arabia","Cape Verde"],I:["France","Senegal","Norway","Iraq"],J:["Argentina","Algeria","Austria","Jordan"],K:["Portugal","Colombia","Uzbekistan","DR Congo"],L:["England","Croatia","Panama","Ghana"]};
+
+// ── State ────────────────────────────────────────────────────────────────────
+let allMatches = [];
+let currentTab = 'results';
+let groupFilter = 'ALL';
+let roundFilter = 'ALL';
+
+// ── Load from openfootball (no API key needed) ───────────────────────────────
+async function loadData() {
+  setStatus('loading','Ielādē...');
+  try {
+    const url = 'https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json';
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    allMatches = parseMatches(data);
+    setStatus('live','Atjaunināts: '+new Date().toLocaleTimeString('lv-LV',{hour:'2-digit',minute:'2-digit'}));
+    renderCurrent();
+  } catch(e) {
+    setStatus('error','Kļūda — nav interneta?');
+    // Fall back to static schedule
+    allMatches = FALLBACK_MATCHES;
+    renderCurrent();
+  }
+}
+
+function parseMatches(data) {
+  const matches = [];
+  if(!data || !data.matches) return matches;
+  for(const m of data.matches) {
+    // Detect group from round string e.g. "Matchday 1", or from group field
+    let group = 'KO';
+    if(m.group) {
+      const g = m.group.replace('Group ','').trim();
+      if(g.length===1) group = g;
+    } else if(m.round && m.round.startsWith('Matchday')) {
+      group = 'KO'; // will be overridden below
+    }
+    // Try to detect group from team membership
+    if(group==='KO' && m.team1 && m.team2) {
+      for(const [g,teams] of Object.entries(GROUPS_STATIC)) {
+        if(teams.includes(m.team1)||teams.includes(m.team2)) { group=g; break; }
+      }
+    }
+
+    const score1 = m.score && m.score.ft ? m.score.ft[0] : null;
+    const score2 = m.score && m.score.ft ? m.score.ft[1] : null;
+    const hasScore = score1 !== null && score2 !== null;
+
+    // Determine status
+    let status = 'scheduled';
+    if(hasScore) status = 'ft';
+
+    // Parse date
+    const dateStr = m.date || '';
+    const dateObj = dateStr ? new Date(dateStr) : null;
+    const dateDisp = dateObj ? dateObj.toLocaleDateString('lv-LV',{day:'2-digit',month:'short'}) : '?';
+    const dayDisp = dateObj ? dateObj.toLocaleDateString('lv-LV',{weekday:'short'}) : '';
+
+    matches.push({
+      date: dateStr,
+      dateDisp,
+      dayDisp,
+      group,
+      home: m.team1 || 'TBD',
+      away: m.team2 || 'TBD',
+      score1,
+      score2,
+      status,
+      venue: m.ground || '',
+      round: m.round || '',
+      isKO: group==='KO'
+    });
+  }
+  return matches;
+}
+
+// ── Status bar ───────────────────────────────────────────────────────────────
+function setStatus(type, txt) {
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot ' + type;
+  document.getElementById('statusTxt').textContent = txt;
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active',['results','schedule','standings','groups'][i]===tab);
+  });
+  ['results','schedule','standings','groups'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('hidden',t!==tab);
+  });
+  renderCurrent();
+}
+
+function renderCurrent() {
+  if(currentTab==='results')   renderResults();
+  if(currentTab==='schedule')  renderSchedule();
+  if(currentTab==='standings') renderStandings();
+  if(currentTab==='groups')    renderGroupsStatic();
+}
+
+// ── Results tab (spēles ar rezultātiem) ──────────────────────────────────────
+function renderResults() {
+  const s = getSearch();
+  const played = allMatches.filter(m=>m.status==='ft' && matchSearch(m,s));
+  const el = document.getElementById('tab-results');
+  if(played.length===0) {
+    el.innerHTML = '<div class="loader">⚽ Spēles vēl nav sākušās vai nav rezultātu.<br><br><small style="color:#4a6080">Turnīrs sākas 11. jūnijā</small></div>';
+    return;
+  }
+  // Sort newest first
+  const sorted = [...played].sort((a,b)=>b.date.localeCompare(a.date));
+  el.innerHTML = '<div class="count">'+sorted.length+' nospēlētas spēles</div>' + sorted.map(m=>cardHTML(m)).join('');
+}
+
+// ── Schedule tab (visi, arī nākamie) ─────────────────────────────────────────
+function renderSchedule() {
+  const s = getSearch();
+  const grps = ['ALL','A','B','C','D','E','F','G','H','I','J','K','L','KO'];
+  const el = document.getElementById('tab-schedule');
+
+  const filters = `<div class="filters">${
+    grps.map(g=>`<button class="filter-btn ${groupFilter===g?'active':''}"
+      style="${groupFilter===g&&g!=='ALL'&&g!=='KO'?'background:'+GC[g]+';':groupFilter===g?'background:#c8a84b;color:#0a0a14;':''}"
+      onclick="setGroupFilter('${g}')">${g==='ALL'?'Visas':g==='KO'?'Izsl.':'Gr.'+g}</button>`).join('')
+  }</div>`;
+
+  const list = allMatches.filter(m=>{
+    const gOk = groupFilter==='ALL' || (groupFilter==='KO'?m.isKO:m.group===groupFilter);
+    return gOk && matchSearch(m,s);
+  });
+
+  el.innerHTML = filters + `<div class="count">${list.length} spēles</div>` + list.map(m=>cardHTML(m)).join('');
+}
+
+function setGroupFilter(g) { groupFilter=g; renderSchedule(); }
+
+// ── Standings tab ─────────────────────────────────────────────────────────────
+function renderStandings() {
+  const el = document.getElementById('tab-standings');
+  // Calculate standings from match results
+  const table = {};
+  for(const [g,teams] of Object.entries(GROUPS_STATIC)) {
+    table[g] = {};
+    for(const t of teams) table[g][t]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};
+  }
+  for(const m of allMatches) {
+    if(m.status!=='ft'||m.isKO) continue;
+    const g = m.group;
+    if(!table[g]) continue;
+    const h=m.home, a=m.away;
+    const s1=m.score1, s2=m.score2;
+    if(table[g][h]===undefined) table[g][h]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};
+    if(table[g][a]===undefined) table[g][a]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};
+    table[g][h].p++; table[g][a].p++;
+    table[g][h].gf+=s1; table[g][h].ga+=s2;
+    table[g][a].gf+=s2; table[g][a].ga+=s1;
+    if(s1>s2){table[g][h].w++;table[g][h].pts+=3;table[g][a].l++;}
+    else if(s1<s2){table[g][a].w++;table[g][a].pts+=3;table[g][h].l++;}
+    else{table[g][h].d++;table[g][h].pts++;table[g][a].d++;table[g][a].pts++;}
+  }
+
+  let html = '<div class="standings-wrap">';
+  for(const [g,teams] of Object.entries(table)) {
+    const sorted = Object.entries(teams).sort((a,b)=>{
+      if(b[1].pts!==a[1].pts) return b[1].pts-a[1].pts;
+      const gdA=a[1].gf-a[1].ga, gdB=b[1].gf-b[1].ga;
+      if(gdB!==gdA) return gdB-gdA;
+      return b[1].gf-a[1].gf;
+    });
+    html+=`<div class="standings-group">
+      <div class="standings-header">
+        <div class="group-badge" style="background:${GC[g]};min-width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff">${g}</div>
+        <div class="standings-title" style="color:${GC[g]}">GRUPA ${g}</div>
+      </div>
+      <table class="standings-table">
+        <thead><tr>
+          <th>Komanda</th><th>S</th><th>U</th><th>N</th><th>Z</th><th>GF</th><th>GA</th><th>Pts</th>
+        </tr></thead>
+        <tbody>
+          ${sorted.map(([name,s],i)=>`
+            <tr class="${i<2?'qualified':i===2?'maybe':''}">
+              <td><span class="pos-num">${i+1}</span>${FLAGS[name]||'🌍'} ${name}</td>
+              <td>${s.p}</td><td>${s.w}</td><td>${s.d}</td><td>${s.l}</td>
+              <td>${s.gf}</td><td>${s.ga}</td>
+              <td><strong style="color:${i<2?'#c8a84b':'#eaeaea'}">${s.pts}</strong></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  }
+  html += '</div>';
+  html += '<div class="info-box"><strong>Krāsas:</strong> 🟢 Kvalificējas &nbsp;·&nbsp; 🟡 Iespējams (labākais 3. vieta)</div>';
+  el.innerHTML = html;
+}
+
+// ── Groups static tab ─────────────────────────────────────────────────────────
+function renderGroupsStatic() {
+  const el = document.getElementById('tab-groups');
+  let html = '<div class="groups-grid">';
+  for(const [g,teams] of Object.entries(GROUPS_STATIC)) {
+    html+=`<div class="group-box" style="border-left:3px solid ${GC[g]}">
+      <div class="group-title" style="color:${GC[g]}">GRUPA ${g}</div>
+      ${teams.map(t=>`<div class="team-row-g">
+        <span style="font-size:14px">${FLAGS[t]||'🌍'}</span>
+        <span class="team-name-g">${t}</span>
+      </div>`).join('')}
+    </div>`;
+  }
+  html += '</div>';
+  html += '<div class="info-box"><strong>Formāts:</strong> Top 2 + 8 labākie 3. vietas iet uz Round of 32. Turnīrs: 11. jūn – 19. jūl 2026.</div>';
+  el.innerHTML = html;
+}
+
+// ── Match card HTML ───────────────────────────────────────────────────────────
+function cardHTML(m) {
+  const hf = FLAGS[m.home]||'🌍';
+  const af = FLAGS[m.away]||'🌍';
+  const hasScore = m.status==='ft';
+  const h1wins = hasScore && m.score1 > m.score2;
+  const h2wins = hasScore && m.score2 > m.score1;
+  const color = m.isKO ? '#c8a84b' : (GC[m.group]||'#555');
+
+  let statusBadge = '';
+  if(m.status==='ft') statusBadge='<span class="status-badge badge-ft">FT</span>';
+  else if(m.status==='live') statusBadge='<span class="status-badge badge-live">LIVE</span>';
+  else if(m.status==='ht') statusBadge='<span class="status-badge badge-ht">HT</span>';
+  else statusBadge='<span class="status-badge badge-sched">'+m.time||'</span>';
+
+  const groupLabel = m.isKO
+    ? `<div style="font-size:9px;color:${color};font-weight:800;min-width:24px;flex-shrink:0">KO</div>`
+    : `<div class="group-badge" style="background:${color}">${m.group}</div>`;
+
+  return `<div class="match-card" style="border-left-color:${color}">
+    <div class="card-top">
+      ${groupLabel}
+      <div class="teams-block">
+        <div class="team-line">
+          <span class="team-flag">${hf}</span>
+          <span class="team-name" style="color:${h1wins?'#fff':'#ddeeff'};font-weight:${h1wins?900:700}">${m.home}</span>
+          ${hasScore
+            ? `<span class="team-score ${h1wins?'winner':''}">${m.score1}</span>`
+            : `<span class="vs-badge">–</span>`}
+        </div>
+        <div class="team-line">
+          <span class="team-flag">${af}</span>
+          <span class="team-name" style="color:${h2wins?'#fff':'#ddeeff'};font-weight:${h2wins?900:700}">${m.away}</span>
+          ${hasScore
+            ? `<span class="team-score ${h2wins?'winner':''}">${m.score2}</span>`
+            : `<span class="vs-badge">–</span>`}
+        </div>
+      </div>
+    </div>
+    <div class="card-bottom">
+      <span class="venue-txt">📍 ${m.venue}</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        ${statusBadge}
+        <span class="date-txt">${m.dateDisp}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getSearch(){ return document.getElementById('searchInput').value.toLowerCase(); }
+function matchSearch(m,s){
+  if(!s) return true;
+  return [m.home,m.away,m.venue,m.dateDisp,m.round,m.group].some(v=>(v||'').toLowerCase().includes(s));
+}
+
+// ── Fallback static schedule (no internet) ───────────────────────────────────
+const FALLBACK_MATCHES = [
+  {date:"2026-06-11",dateDisp:"11. jūn",dayDisp:"Ce",group:"A",home:"Mexico",away:"South Africa",score1:null,score2:null,status:"scheduled",venue:"Mexico City",round:"Matchday 1",isKO:false},
+  {date:"2026-06-11",dateDisp:"11. jūn",dayDisp:"Ce",group:"A",home:"South Korea",away:"Czech Republic",score1:null,score2:null,status:"scheduled",venue:"Guadalajara",round:"Matchday 1",isKO:false},
+  {date:"2026-06-12",dateDisp:"12. jūn",dayDisp:"Pk",group:"B",home:"Canada",away:"Bosnia & Herzegovina",score1:null,score2:null,status:"scheduled",venue:"Toronto",round:"Matchday 1",isKO:false},
+  {date:"2026-06-12",dateDisp:"12. jūn",dayDisp:"Pk",group:"D",home:"USA",away:"Paraguay",score1:null,score2:null,status:"scheduled",venue:"Los Angeles",round:"Matchday 1",isKO:false},
+  {date:"2026-06-13",dateDisp:"13. jūn",dayDisp:"Se",group:"B",home:"Qatar",away:"Switzerland",score1:null,score2:null,status:"scheduled",venue:"San Francisco",round:"Matchday 1",isKO:false},
+  {date:"2026-06-13",dateDisp:"13. jūn",dayDisp:"Se",group:"C",home:"Brazil",away:"Morocco",score1:null,score2:null,status:"scheduled",venue:"New York/NJ",round:"Matchday 1",isKO:false},
+  {date:"2026-06-13",dateDisp:"13. jūn",dayDisp:"Se",group:"C",home:"Haiti",away:"Scotland",score1:null,score2:null,status:"scheduled",venue:"Boston",round:"Matchday 1",isKO:false},
+  {date:"2026-06-14",dateDisp:"14. jūn",dayDisp:"Sv",group:"E",home:"Germany",away:"Curaçao",score1:null,score2:null,status:"scheduled",venue:"Houston",round:"Matchday 1",isKO:false},
+  {date:"2026-06-14",dateDisp:"14. jūn",dayDisp:"Sv",group:"F",home:"Netherlands",away:"Japan",score1:null,score2:null,status:"scheduled",venue:"Dallas",round:"Matchday 1",isKO:false},
+  {date:"2026-06-15",dateDisp:"15. jūn",dayDisp:"P",group:"H",home:"Spain",away:"Cape Verde",score1:null,score2:null,status:"scheduled",venue:"Atlanta",round:"Matchday 1",isKO:false},
+  {date:"2026-06-15",dateDisp:"15. jūn",dayDisp:"P",group:"G",home:"Belgium",away:"Egypt",score1:null,score2:null,status:"scheduled",venue:"Vancouver",round:"Matchday 1",isKO:false},
+  {date:"2026-06-16",dateDisp:"16. jūn",dayDisp:"O",group:"I",home:"France",away:"Senegal",score1:null,score2:null,status:"scheduled",venue:"New York/NJ",round:"Matchday 1",isKO:false},
+  {date:"2026-06-16",dateDisp:"16. jūn",dayDisp:"O",group:"J",home:"Argentina",away:"Algeria",score1:null,score2:null,status:"scheduled",venue:"Kansas City",round:"Matchday 1",isKO:false},
+  {date:"2026-06-17",dateDisp:"17. jūn",dayDisp:"T",group:"K",home:"Portugal",away:"DR Congo",score1:null,score2:null,status:"scheduled",venue:"Houston",round:"Matchday 1",isKO:false},
+  {date:"2026-06-17",dateDisp:"17. jūn",dayDisp:"T",group:"L",home:"England",away:"Croatia",score1:null,score2:null,status:"scheduled",venue:"Dallas",round:"Matchday 1",isKO:false},
+  {date:"2026-07-19",dateDisp:"19. jūl",dayDisp:"Sv",group:"KO",home:"TBD",away:"TBD",score1:null,score2:null,status:"scheduled",venue:"New York/NJ",round:"Final",isKO:true}
+];
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadData();
+// Auto-refresh every 3 minutes
+setInterval(loadData, 3*60*1000);
+</script>
+</body>
+</html>
