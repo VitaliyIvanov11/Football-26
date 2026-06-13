@@ -237,6 +237,17 @@ h1{font-size:22px;font-weight:900;color:#fff}
   <div class="mbody" id="mbody"></div>
 </div>
 
+<div class="modal hidden" id="matchModal">
+  <div class="mhdr">
+    <button class="mback" onclick="closeMatch()">← <span data-t="back">Atpakaļ</span></button>
+    <div style="flex:1">
+      <div style="font-size:16px;font-weight:900;color:#fff" id="mmTitle"></div>
+      <div style="font-size:11px;color:#8fa3c8;margin-top:2px" id="mmSub"></div>
+    </div>
+  </div>
+  <div class="mbody" id="mmBody"></div>
+</div>
+
 <script>
 // ── TRANSLATIONS ──────────────────────────────────────────────────────────
 const T = {
@@ -656,7 +667,10 @@ function mCard(m){
         </div>
       </div>
     </div>
-    ${(!hasScore&&!isLive)?`<button class="cal-btn" onclick="event.stopPropagation();addToCalendar('${tTeam(h)}','${tTeam(a)}','${m.utcDate}','${(venueName||m.venue||'').replace(/'/g,'')}')">📅 ${lang==='lv'?'Kalendārā':lang==='es'?'Calendario':'Add to calendar'}</button>`:''}
+    <div style="display:flex;gap:6px;margin-top:6px">
+      <button class="cal-btn" onclick="event.stopPropagation();openMatch('${m.id}')" style="background:#1a2d55;color:#8fa3c8">📊 ${lang==='lv'?'Detaļas':lang==='es'?'Detalles':'Details'}</button>
+      ${(!hasScore&&!isLive)?`<button class="cal-btn" onclick="event.stopPropagation();addToCalendar('${tTeam(h)}','${tTeam(a)}','${m.utcDate}','${(venueName||m.venue||'').replace(/'/g,'')}')">📅 ${lang==='lv'?'Kalendārā':lang==='es'?'Calendario':'Calendar'}</button>`:''}
+    </div>
   </div>`;
 }
 
@@ -1101,6 +1115,113 @@ function addToCalendar(home,away,utcDate,venue){
   var loc=encodeURIComponent(venue);
   var gcal="https://calendar.google.com/calendar/render?action=TEMPLATE&text="+title+"&dates="+fmt(start)+"/"+fmt(end)+"&details="+details+"&location="+loc;
   window.open(gcal,"_blank");
+}
+
+
+// ── MATCH DETAILS ──────────────────────────────────────────────────────────
+function openMatch(id){
+  var m=null;
+  for(var i=0;i<matches.length;i++){if(String(matches[i].id)===String(id)){m=matches[i];break;}}
+  if(!m) return;
+
+  var h=norm(m.homeTeam.name), a=norm(m.awayTeam.name);
+  var hf=FLAGS[h]||"🌍", af=FLAGS[a]||"🌍";
+  var sc=m.score&&m.score.fullTime?m.score.fullTime:{};
+  var ht=m.score&&m.score.halfTime?m.score.halfTime:{};
+  var hasScore=sc.home!==null&&sc.home!==undefined&&m.status!=="TIMED"&&m.status!=="SCHEDULED";
+  var ft=formatTimes(m.utcDate);
+  var venueName=tVenue(m.venue||"")||m.venue||"";
+
+  var grp="KO",color="#c8a84b";
+  var gkeys=Object.keys(GROUPS_STATIC);
+  for(var gi=0;gi<gkeys.length;gi++){
+    if(GROUPS_STATIC[gkeys[gi]].indexOf(h)>=0||GROUPS_STATIC[gkeys[gi]].indexOf(a)>=0){grp=gkeys[gi];color=GC[gkeys[gi]];break;}
+  }
+
+  document.getElementById("mmTitle").textContent=tTeam(h)+" vs "+tTeam(a);
+  document.getElementById("mmSub").textContent=(grp==="KO"?t("ko"):t("group")+" "+grp)+" · "+ft.date;
+
+  var body="";
+
+  // Score header
+  body+='<div style="background:linear-gradient(135deg,#10192a,#0a1628);border-radius:12px;padding:18px;margin-bottom:16px;text-align:center;border:1px solid '+color+'">';
+  body+='<div style="display:flex;align-items:center;justify-content:center;gap:14px">';
+  body+='<div style="flex:1;text-align:right"><div style="font-size:32px">'+hf+'</div><div style="font-size:13px;font-weight:700;color:#ddeeff;margin-top:4px">'+tTeam(h)+'</div></div>';
+  if(hasScore){
+    body+='<div style="font-size:36px;font-weight:900;color:#c8a84b;min-width:80px">'+sc.home+' : '+sc.away+'</div>';
+  } else {
+    body+='<div style="font-size:14px;color:#5a7fa8;min-width:80px">'+ft.riga+'<br><span style="font-size:10px">'+USER_TZ_LABEL+'</span></div>';
+  }
+  body+='<div style="flex:1;text-align:left"><div style="font-size:32px">'+af+'</div><div style="font-size:13px;font-weight:700;color:#ddeeff;margin-top:4px">'+tTeam(a)+'</div></div>';
+  body+='</div>';
+  if(hasScore&&ht.home!==null&&ht.home!==undefined){
+    body+='<div style="font-size:10px;color:#5a7fa8;margin-top:10px">'+(lang==="lv"?"1. puslaiks":lang==="es"?"Primer tiempo":"Half-time")+': '+ht.home+':'+ht.away+'</div>';
+  }
+  var statusTxt=m.status==="FINISHED"?(lang==="lv"?"Spēle pabeigta":lang==="es"?"Finalizado":"Full time"):
+    (m.status==="IN_PLAY"||m.status==="PAUSED")?"🔴 LIVE":
+    (lang==="lv"?"Gaidāma":lang==="es"?"Próximo":"Upcoming");
+  body+='<div style="font-size:11px;color:#c8a84b;margin-top:6px;font-weight:700">'+statusTxt+'</div>';
+  body+='</div>';
+
+  // Goals
+  if(hasScore&&m.goals&&m.goals.length){
+    body+='<div class="msec"><div class="mstitle" style="color:'+color+'">⚽ '+(lang==="lv"?"Vārti":lang==="es"?"Goles":"Goals")+'</div>';
+    for(var i=0;i<m.goals.length;i++){
+      var g=m.goals[i];
+      var teamName=g.team&&g.team.id===m.homeTeam.id?tTeam(h):tTeam(a);
+      var teamFlag=g.team&&g.team.id===m.homeTeam.id?hf:af;
+      body+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #111c2a">';
+      body+='<span style="font-size:14px">'+teamFlag+'</span>';
+      body+='<span style="font-size:12px;color:#ddeeff;flex:1">'+(g.scorer&&g.scorer.name?g.scorer.name:"?")+'</span>';
+      body+='<span style="font-size:11px;color:#c8a84b;font-weight:800">'+(g.minute||"?")+"'"+'</span>';
+      body+='</div>';
+    }
+    body+='</div>';
+  }
+
+  // Match info
+  body+='<div class="msec"><div class="mstitle" style="color:'+color+'">📋 '+(lang==="lv"?"Informācija":lang==="es"?"Información":"Match info")+'</div>';
+  body+='<div style="background:#10192a;border-radius:8px;padding:12px">';
+  body+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #111c2a"><span style="font-size:11px;color:#5a7fa8">🏟️ '+(lang==="lv"?"Stadions":lang==="es"?"Estadio":"Stadium")+'</span><span style="font-size:11px;color:#ddeeff;text-align:right">'+venueName+'</span></div>';
+  body+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #111c2a"><span style="font-size:11px;color:#5a7fa8">📅 '+(lang==="lv"?"Datums":lang==="es"?"Fecha":"Date")+'</span><span style="font-size:11px;color:#ddeeff">'+ft.date+' '+ft.riga+'</span></div>';
+  if(m.referees&&m.referees.length){
+    var ref=m.referees[0];
+    body+='<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="font-size:11px;color:#5a7fa8">👨‍⚖️ '+(lang==="lv"?"Tiesnesis":lang==="es"?"Árbitro":"Referee")+'</span><span style="font-size:11px;color:#ddeeff">'+ref.name+(ref.nationality?" ("+ref.nationality+")":"")+'</span></div>';
+  }
+  body+='</div></div>';
+
+  // Squads (from our data)
+  var hSquad=SQUADS[h], aSquad=SQUADS[a];
+  if(hSquad||aSquad){
+    body+='<div class="msec"><div class="mstitle" style="color:'+color+'">👕 '+(lang==="lv"?"Galvenie spēlētāji":lang==="es"?"Jugadores clave":"Key players")+'</div>';
+    body+='<div style="display:flex;gap:8px">';
+    body+='<div style="flex:1">';
+    body+='<div style="font-size:11px;font-weight:800;color:#ddeeff;margin-bottom:6px">'+hf+' '+tTeam(h)+'</div>';
+    if(hSquad){for(var i=0;i<Math.min(hSquad.length,5);i++){body+='<div style="font-size:10px;color:#8fa3c8;padding:2px 0">'+hSquad[i].name+' <span style="color:#4a6080">'+hSquad[i].pos+'</span></div>';}}
+    else{body+='<div style="font-size:10px;color:#4a6080">—</div>';}
+    body+='</div>';
+    body+='<div style="flex:1">';
+    body+='<div style="font-size:11px;font-weight:800;color:#ddeeff;margin-bottom:6px">'+af+' '+tTeam(a)+'</div>';
+    if(aSquad){for(var i=0;i<Math.min(aSquad.length,5);i++){body+='<div style="font-size:10px;color:#8fa3c8;padding:2px 0">'+aSquad[i].name+' <span style="color:#4a6080">'+aSquad[i].pos+'</span></div>';}}
+    else{body+='<div style="font-size:10px;color:#4a6080">—</div>';}
+    body+='</div>';
+    body+='</div></div>';
+  }
+
+  // Team profile links
+  body+='<div class="msec"><div style="display:flex;gap:8px">';
+  body+='<button onclick="closeMatch();openTeam(\''+h+'\')" style="flex:1;background:#10192a;border:1px solid '+color+';border-radius:8px;padding:10px;color:#ddeeff;font-size:12px;cursor:pointer">'+hf+' '+tTeam(h)+' ›</button>';
+  body+='<button onclick="closeMatch();openTeam(\''+a+'\')" style="flex:1;background:#10192a;border:1px solid '+color+';border-radius:8px;padding:10px;color:#ddeeff;font-size:12px;cursor:pointer">'+af+' '+tTeam(a)+' ›</button>';
+  body+='</div></div>';
+
+  document.getElementById("mmBody").innerHTML=body;
+  document.getElementById("matchModal").classList.remove("hidden");
+  document.body.style.overflow="hidden";
+}
+
+function closeMatch(){
+  document.getElementById("matchModal").classList.add("hidden");
+  document.body.style.overflow="";
 }
 
 
