@@ -735,6 +735,138 @@ const NEWS={
   ]
 };
 
+function renderStats(){
+  var el=document.getElementById("tab-stats");
+  var finished=matches.filter(function(m){return m.status==="FINISHED";});
+  if(!finished.length){
+    el.innerHTML="<div class=\"no-stats\">📊 "+t("no_results")+"<br><br><small style=\"color:#4a6080\">"+t("tournament_starts")+"</small></div>";
+    return;
+  }
+  var html="<div class=\"stats-wrap\">";
+
+  // 1. Goals per group
+  var groupGoals={};
+  for(var i=0;i<finished.length;i++){
+    var m=finished[i];
+    var h=norm(m.homeTeam.name), a=norm(m.awayTeam.name);
+    var sc=m.score&&m.score.fullTime?m.score.fullTime:{};
+    var g=(sc.home||0)+(sc.away||0);
+    var grp="?";
+    var gkeys=Object.keys(GROUPS_STATIC);
+    for(var gi=0;gi<gkeys.length;gi++){
+      var gk=gkeys[gi];
+      if(GROUPS_STATIC[gk].indexOf(h)>=0||GROUPS_STATIC[gk].indexOf(a)>=0){grp=gk;break;}
+    }
+    if(!groupGoals[grp]) groupGoals[grp]={goals:0,matches:0};
+    groupGoals[grp].goals+=g;
+    groupGoals[grp].matches++;
+  }
+  var maxG=1;
+  var grpKeys=Object.keys(groupGoals);
+  for(var i=0;i<grpKeys.length;i++){if(groupGoals[grpKeys[i]].goals>maxG) maxG=groupGoals[grpKeys[i]].goals;}
+  var totalGoals=0;
+  for(var i=0;i<grpKeys.length;i++) totalGoals+=groupGoals[grpKeys[i]].goals;
+  var avgGoals=(totalGoals/finished.length).toFixed(1);
+  var totalLabel=lang==="lv"?"Kopā":lang==="es"?"Total":"Total";
+  var avgLabel=lang==="lv"?"Vidēji":lang==="es"?"Media":"Avg";
+  html+="<div class=\"chart-card\">";
+  html+="<div class=\"chart-title\">⚽ "+(lang==="lv"?"Vārti pa grupām":lang==="es"?"Goles por grupo":"Goals by group")+"</div>";
+  html+="<div style=\"font-size:10px;color:#5a7fa8;margin-bottom:10px\">"+totalLabel+": "+totalGoals+" · "+avgLabel+": "+avgGoals+"/sp.</div>";
+  var sortedGrps=grpKeys.sort(function(a,b){return groupGoals[b].goals-groupGoals[a].goals;});
+  for(var i=0;i<sortedGrps.length;i++){
+    var grp=sortedGrps[i];
+    var d=groupGoals[grp];
+    var color=GC[grp]||"#888";
+    var pct=Math.round((d.goals/maxG)*100);
+    var avg=(d.goals/d.matches).toFixed(1);
+    html+="<div class=\"bar-row\">";
+    html+="<div class=\"bar-label\"><span style=\"color:"+color+";font-weight:800\">"+t("group")+" "+grp+"</span></div>";
+    html+="<div class=\"bar-track\"><div class=\"bar-fill\" style=\"width:"+pct+"%;background:"+color+"\"><span class=\"bar-val\">"+d.goals+"</span></div></div>";
+    html+="<div style=\"font-size:10px;color:#5a7fa8;min-width:36px\">"+avg+"/sp.</div></div>";
+  }
+  html+="</div>";
+
+  // 2. Top scorers
+  var scorers={};
+  for(var i=0;i<finished.length;i++){
+    var m=finished[i];
+    if(!m.goals) continue;
+    for(var j=0;j<m.goals.length;j++){
+      var g=m.goals[j];
+      if(!g.scorer||!g.scorer.name) continue;
+      var key=g.scorer.name;
+      var team=norm(g.team&&g.team.name?g.team.name:"");
+      if(!scorers[key]) scorers[key]={name:key,team:team,goals:0};
+      scorers[key].goals++;
+    }
+  }
+  var top=Object.values(scorers).sort(function(a,b){return b.goals-a.goals;}).slice(0,10);
+  if(top.length){
+    var glabel=lang==="lv"?"vārti":lang==="es"?"goles":"goals";
+    html+="<div class=\"chart-card\">";
+    html+="<div class=\"chart-title\">🥇 "+(lang==="lv"?"Labākie vārtu guvēji":lang==="es"?"Máximos goleadores":"Top scorers")+"</div>";
+    for(var i=0;i<top.length;i++){
+      var s=top[i];
+      var balls="";
+      for(var b=0;b<Math.min(s.goals,5);b++) balls+="⚽";
+      html+="<div class=\"scorer-row\">";
+      html+="<div class=\"scorer-pos\">"+(i+1)+"</div>";
+      html+="<div class=\"scorer-flag\">"+(FLAGS[s.team]||"🌍")+"</div>";
+      html+="<div style=\"flex:1\"><div class=\"scorer-name\">"+s.name+"</div><div class=\"scorer-team\">"+tTeam(s.team)+"</div></div>";
+      html+="<div style=\"display:flex;align-items:center;gap:3px\">"+balls+"<span class=\"scorer-goals\">"+s.goals+"</span></div>";
+      html+="</div>";
+    }
+    html+="</div>";
+  } else {
+    html+="<div class=\"chart-card\"><div class=\"chart-title\">🥇 "+(lang==="lv"?"Labākie vārtu guvēji":"Top scorers")+"</div>";
+    html+="<div style=\"text-align:center;padding:20px;color:#4a6080;font-size:12px\">"+(lang==="lv"?"Vārtu guvēju dati nav pieejami bezmaksas plānā":"Goal scorer data not available on free plan")+"</div></div>";
+  }
+
+  // 3. Team form
+  var tf={};
+  for(var i=0;i<finished.length;i++){
+    var m=finished[i];
+    var h=norm(m.homeTeam.name), a=norm(m.awayTeam.name);
+    var sc=m.score&&m.score.fullTime?m.score.fullTime:{};
+    var s1=sc.home||0, s2=sc.away||0;
+    if(!tf[h]) tf[h]={name:h,r:[],pts:0};
+    if(!tf[a]) tf[a]={name:a,r:[],pts:0};
+    if(s1>s2){tf[h].r.push("W");tf[h].pts+=3;tf[a].r.push("L");}
+    else if(s1<s2){tf[a].r.push("W");tf[a].pts+=3;tf[h].r.push("L");}
+    else{tf[h].r.push("D");tf[h].pts++;tf[a].r.push("D");tf[a].pts++;}
+  }
+  var fList=Object.values(tf).filter(function(x){return x.r.length>0;}).sort(function(a,b){return b.pts-a.pts;});
+  if(fList.length){
+    var wl=lang==="lv"?"U":lang==="es"?"G":"W";
+    var dl=lang==="lv"?"N":lang==="es"?"E":"D";
+    var ll=lang==="lv"?"Z":lang==="es"?"P":"L";
+    html+="<div class=\"chart-card\">";
+    html+="<div class=\"chart-title\">📈 "+(lang==="lv"?"Komandu forma":lang==="es"?"Forma de equipos":"Team form")+"</div>";
+    html+="<div style=\"font-size:10px;color:#5a7fa8;margin-bottom:8px\">";
+    html+="<span style=\"color:#27ae60\">■</span> "+wl+" &nbsp;<span style=\"color:#f39c12\">■</span> "+dl+" &nbsp;<span style=\"color:#e63946\">■</span> "+ll+"</div>";
+    for(var i=0;i<fList.length;i++){
+      var x=fList[i];
+      html+="<div class=\"form-row\">";
+      html+="<div class=\"form-name\">"+(FLAGS[x.name]||"🌍")+" "+tTeam(x.name)+"</div>";
+      html+="<div class=\"form-dots\">";
+      for(var j=0;j<x.r.length;j++){
+        var r=x.r[j];
+        var cls=r==="W"?"fd-w":r==="D"?"fd-d":"fd-l";
+        var lbl=r==="W"?wl:r==="D"?dl:ll;
+        html+="<div class=\"form-dot "+cls+"\">"+lbl+"</div>";
+      }
+      for(var j=x.r.length;j<3;j++) html+="<div class=\"form-dot fd-n\">·</div>";
+      html+="</div>";
+      html+="<div class=\"form-pts\">"+x.pts+"pts</div></div>";
+    }
+    html+="</div>";
+  }
+
+  html+="</div>";
+  el.innerHTML=html;
+}
+
+
 function renderInfo(){
   var el=document.getElementById("tab-info");
   var tabs=["news","stadiums","ballon"];
