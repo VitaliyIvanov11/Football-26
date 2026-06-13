@@ -708,13 +708,32 @@ const BALLON=[
   {pos:8,flag:"🇵🇹",name:"Cristiano Ronaldo",team:"Portugāle",age:41,note:"Pēdējais PK. Meklē titulu.",odds:"15/1"}
 ];
 
-const NEWS=[
-  {date:"11.06.2026",title:"🇲🇽 Meksika 2:0 Dienvidāfrika — turnīrs atklāts!",body:"Azteku stadionā Meksikas pilsētā notika turnīra atklāšanas spēle. Meksika uzvarēja 2:0 mājas fanu priekā.",tag:"Rezultāti"},
-  {date:"11.06.2026",title:"🌍 104 spēles, 48 komandas — lielākais PK vēsturē",body:"FIFA Pasaules kauss 2026 ir pirmais ar 48 komandām. Turnīrs notiek ASV, Kanādā un Meksikā. Fināls 19. jūlijā.",tag:"Info"},
-  {date:"09.06.2026",title:"⭐ Mesi, Mbappé, Vinícius — Zelta bumbas cīņa",body:"Trīs galvenie kandidāti: Messi (pēdējais PK), Mbappé (favorīts) un Vinícius Jr. (Brazīlijas cerība).",tag:"Spēlētāji"},
-  {date:"08.06.2026",title:"🇳🇴 Norvēģija pirmo reizi kopš 1994!",body:"Norvēģija kvalificējās PK pirmo reizi 32 gados. Hālands pirmajā PK.",tag:"Komandas"},
-  {date:"07.06.2026",title:"📺 Kur skatīties Latvijā?",body:"Latvijā spēles translē LTV7. Laiki Rīgas laika joslā (UTC+3 vasarā). Dažas spēles notiek naktī.",tag:"Info"}
-];
+const NEWS={
+  lv:[
+    {date:"11.06.2026",title:"🇲🇽 Meksika 2:0 Dienvidāfrika — turnīrs atklāts!",body:"Azteku stadionā Meksikas pilsētā notika turnīra atklāšanas spēle. Meksika uzvarēja 2:0 mājas fanu priekā.",tag:"Rezultāti"},
+    {date:"11.06.2026",title:"🇺🇸 ASV 4:1 Paragvaja — iespaidīga uzvara!",body:"ASV sagrāva Paragvaju ar 4:1 savā pirmajā spēlē. Pulisics un Balogun bija izcili.",tag:"Rezultāti"},
+    {date:"11.06.2026",title:"🌍 104 spēles, 48 komandas — lielākais PK vēsturē",body:"FIFA Pasaules kauss 2026 ir pirmais ar 48 komandām. Turnīrs notiek ASV, Kanādā un Meksikā. Fināls 19. jūlijā.",tag:"Info"},
+    {date:"09.06.2026",title:"⭐ Mesi, Mbappé, Vinícius — Zelta bumbas cīņa",body:"Trīs galvenie kandidāti: Messi (pēdējais PK), Mbappé (favorīts) un Vinícius Jr. (Brazīlijas cerība).",tag:"Spēlētāji"},
+    {date:"08.06.2026",title:"🇳🇴 Norvēģija pirmo reizi kopš 1994!",body:"Norvēģija kvalificējās PK pirmo reizi 32 gados. Hālands pirmajā PK.",tag:"Komandas"},
+    {date:"07.06.2026",title:"📺 Kur skatīties Latvijā?",body:"Latvijā spēles translē LTV7. Laiki Rīgas laika joslā (UTC+3 vasarā).",tag:"Info"}
+  ],
+  en:[
+    {date:"11.06.2026",title:"🇲🇽 Mexico 2:0 South Africa — tournament opens!",body:"The opening match took place at Estadio Azteca in Mexico City. Mexico won 2:0 to the delight of home fans.",tag:"Results"},
+    {date:"11.06.2026",title:"🇺🇸 USA 4:1 Paraguay — impressive win!",body:"USA dominated Paraguay 4:1 in their opening game. Pulisic and Balogun were outstanding.",tag:"Results"},
+    {date:"11.06.2026",title:"🌍 104 matches, 48 teams — biggest World Cup ever",body:"FIFA World Cup 2026 is the first with 48 teams. Tournament takes place in USA, Canada and Mexico. Final on July 19.",tag:"Info"},
+    {date:"09.06.2026",title:"⭐ Messi, Mbappé, Vinícius — Golden Ball battle",body:"Three main candidates: Messi (last WC), Mbappé (favourite) and Vinícius Jr. (Brazil's hope).",tag:"Players"},
+    {date:"08.06.2026",title:"🇳🇴 Norway back for first time since 1994!",body:"Norway qualified for the World Cup for the first time in 32 years. Haaland's first WC.",tag:"Teams"},
+    {date:"07.06.2026",title:"📺 Where to watch the World Cup?",body:"Check your local TV listings. Times shown in your local timezone automatically.",tag:"Info"}
+  ],
+  es:[
+    {date:"11.06.2026",title:"🇲🇽 México 2:0 Sudáfrica — ¡arranca el torneo!",body:"El partido inaugural se jugó en el Estadio Azteca. México ganó 2:0 ante su afición.",tag:"Resultados"},
+    {date:"11.06.2026",title:"🇺🇸 EE.UU. 4:1 Paraguay — ¡victoria impresionante!",body:"EE.UU. dominó a Paraguay 4:1 en su debut. Pulisic y Balogun fueron destacados.",tag:"Resultados"},
+    {date:"11.06.2026",title:"🌍 104 partidos, 48 equipos — el mayor Mundial de la historia",body:"La Copa del Mundo FIFA 2026 es la primera con 48 equipos. Se juega en EE.UU., Canadá y México. Final el 19 de julio.",tag:"Info"},
+    {date:"09.06.2026",title:"⭐ Messi, Mbappé, Vinícius — lucha por el Balón de Oro",body:"Tres candidatos principales: Messi (último Mundial), Mbappé (favorito) y Vinícius Jr. (esperanza de Brasil).",tag:"Jugadores"},
+    {date:"08.06.2026",title:"🇳🇴 ¡Noruega de vuelta por primera vez desde 1994!",body:"Noruega se clasificó para el Mundial por primera vez en 32 años. El primer Mundial de Haaland.",tag:"Equipos"},
+    {date:"07.06.2026",title:"📺 ¿Dónde ver el Mundial?",body:"Consulta tu guía de TV local. Los horarios se muestran en tu zona horaria automáticamente.",tag:"Info"}
+  ]
+};
 
 function renderInfo(){
   var el=document.getElementById("tab-info");
@@ -732,8 +751,9 @@ function renderInfo(){
   html+="</div>";
 
   if(infoTab==="news"){
-    for(var i=0;i<NEWS.length;i++){
-      var n=NEWS[i];
+    var newsList=NEWS[lang]||NEWS.lv;
+    for(var i=0;i<newsList.length;i++){
+      var n=newsList[i];
       html+="<div class=\"news-card\" id=\"nc"+i+"\" onclick=\"toggleNews("+i+")\">";
       html+="<div style=\"display:flex;justify-content:space-between;align-items:flex-start\">";
       html+="<div class=\"news-title\">"+n.title+"</div>";
