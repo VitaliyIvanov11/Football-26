@@ -1000,7 +1000,12 @@ function renderInfo(){
   html+="</div>";
 
   if(infoTab==="news"){
+    // Load auto news from NewsAPI via Worker
+    loadAutoNews();
     var newsList=NEWS[lang]||NEWS.lv;
+    // Manual curated news
+    var manualTitle=lang==="lv"?"📌 Redakcijas jaunumi":lang==="es"?"📌 Noticias editoriales":"📌 Curated news";
+    html+='<div style="font-size:10px;font-weight:800;color:#c8a84b;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">'+manualTitle+'</div>';
     for(var i=0;i<newsList.length;i++){
       var n=newsList[i];
       html+="<div class=\"news-card\" id=\"nc"+i+"\" onclick=\"toggleNews("+i+")\">";
@@ -1010,6 +1015,10 @@ function renderInfo(){
       html+="<div class=\"news-meta\">📅 "+n.date+" · <span style=\"color:#c8a84b\">"+n.tag+"</span></div>";
       html+="<div class=\"news-body\">"+n.body+"</div></div>";
     }
+    // Auto news placeholder
+    var autoTitle=lang==="lv"?"🌐 Jaunākie starptautiskie jaunumi":lang==="es"?"🌐 Últimas noticias internacionales":"🌐 Latest international news";
+    html+='<div style="font-size:10px;font-weight:800;color:#2980b9;letter-spacing:1px;text-transform:uppercase;margin:14px 0 8px">'+autoTitle+'</div>';
+    html+='<div id="autoNewsContainer"><div class="loader" style="padding:20px">⏳ '+(lang==="lv"?"Ielādē jaunumus...":lang==="es"?"Cargando noticias...":"Loading news...")+'</div></div>';
   } else if(infoTab==="stadiums"){
     for(var i=0;i<STADIUMS.length;i++){
       var s=STADIUMS[i];
@@ -1240,6 +1249,66 @@ function closeMatch(){
   document.getElementById("matchModal").classList.add("hidden");
   document.body.style.overflow="";
 }
+
+
+// ── AUTO NEWS FROM NEWSAPI ─────────────────────────────────────────────────
+var autoNewsLoaded=false;
+
+async function loadAutoNews(){
+  var container=document.getElementById("autoNewsContainer");
+  if(!container) return;
+  if(autoNewsLoaded) return;
+
+  try{
+    var q=lang==="es"?"Copa Mundial 2026":"World Cup 2026";
+    var l=lang==="es"?"es":"en";
+    var url=BASE+"/news?q="+encodeURIComponent(q)+"&lang="+l;
+    var r=await fetch(url);
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    var data=await r.json();
+    var articles=data.articles||[];
+
+    // Filter relevant articles
+    articles=articles.filter(function(a){
+      var txt=(a.title||"").toLowerCase();
+      return txt.indexOf("world cup")>=0||txt.indexOf("copa")>=0||txt.indexOf("fifa")>=0||txt.indexOf("soccer")>=0||txt.indexOf("football")>=0;
+    }).slice(0,10);
+
+    if(!articles.length){
+      container.innerHTML='<div style="text-align:center;padding:16px;color:#4a6080;font-size:12px">'+(lang==="lv"?"Nav jaunu ziņu":"No recent news")+'</div>';
+      return;
+    }
+
+    var html="";
+    for(var i=0;i<articles.length;i++){
+      var a=articles[i];
+      var date=a.publishedAt?new Date(a.publishedAt).toLocaleDateString([],{day:"2-digit",month:"short"}):"";
+      var source=a.source&&a.source.name?a.source.name:"";
+      var img=a.urlToImage?"<img src=\""+a.urlToImage+"\" style=\"width:100%;height:90px;object-fit:cover;border-radius:6px 6px 0 0\" onerror=\"this.style.display=\'none\'\">":"";
+      html+='<a href="'+(a.url||"#")+'" target="_blank" style="display:block;text-decoration:none;background:#10192a;border-radius:10px;margin-bottom:8px;overflow:hidden;border-left:3px solid #2980b9">';
+      html+=img;
+      html+='<div style="padding:10px 12px">';
+      html+='<div style="font-size:12px;font-weight:700;color:#ddeeff;line-height:1.4;margin-bottom:5px">'+(a.title||"")+'</div>';
+      html+='<div style="font-size:10px;color:#5a7fa8">📰 '+source+' · 📅 '+date+'</div>';
+      if(a.description){
+        html+='<div style="font-size:11px;color:#6a8ab0;margin-top:5px;line-height:1.5">'+(a.description.substring(0,120)+(a.description.length>120?"...":""))+'</div>';
+      }
+      html+='<div style="font-size:10px;color:#2980b9;margin-top:5px">'+(lang==="lv"?"Lasīt vairāk →":lang==="es"?"Leer más →":"Read more →")+'</div>';
+      html+='</div></a>';
+    }
+    container.innerHTML=html;
+    autoNewsLoaded=true;
+  }catch(e){
+    if(container) container.innerHTML='<div style="text-align:center;padding:16px;color:#4a6080;font-size:12px">⚠️ '+(lang==="lv"?"Ziņas nav pieejamas":"News unavailable")+'</div>';
+  }
+}
+
+// Reset auto news when language changes
+var _origSetLang=setLang;
+setLang=function(l){
+  autoNewsLoaded=false;
+  _origSetLang(l);
+};
 
 
 loadAll();
