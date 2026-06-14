@@ -1000,8 +1000,6 @@ function renderInfo(){
   html+="</div>";
 
   if(infoTab==="news"){
-    // Load auto news from NewsAPI via Worker
-    loadAutoNews();
     var newsList=NEWS[lang]||NEWS.lv;
     // Manual curated news
     var manualTitle=lang==="lv"?"📌 Redakcijas jaunumi":lang==="es"?"📌 Noticias editoriales":"📌 Curated news";
@@ -1064,9 +1062,9 @@ function renderInfo(){
   }
   html+="</div>";
   el.innerHTML=html;
+  // Load auto news AFTER DOM is updated
+  if(infoTab==="news") setTimeout(loadAutoNews, 50);
 }
-
-function setInfoTab(tab){infoTab=tab;renderInfo();}
 function toggleNews(i){
   var card=document.getElementById("nc"+i);
   card.classList.toggle("open");
