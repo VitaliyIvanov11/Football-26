@@ -1208,6 +1208,23 @@ function openMatch(id){
     body+='</div></div>';
   }
 
+  // Watch / follow links
+  var ytQuery=encodeURIComponent(h+" vs "+a+" World Cup 2026 highlights");
+  var ytUrl="https://www.youtube.com/results?search_query="+ytQuery;
+  var fifaUrl="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026";
+  var watchTitle=lang==="lv"?"Skatīties / Sekot":lang==="es"?"Ver / Seguir":"Watch / Follow";
+  var ytLabel=hasScore?(lang==="lv"?"Spēles momenti":lang==="es"?"Resúmenes":"Highlights"):(lang==="lv"?"Tiešraide / momenti":lang==="es"?"En vivo":"Live / clips");
+  body+='<div class="msec"><div class="mstitle" style="color:'+color+'">📺 '+watchTitle+'</div>';
+  body+='<a href="'+ytUrl+'" target="_blank" style="display:flex;align-items:center;gap:10px;background:#10192a;border-radius:8px;padding:12px;margin-bottom:6px;text-decoration:none;border-left:3px solid #ff0000">';
+  body+='<span style="font-size:22px">▶️</span>';
+  body+='<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#ddeeff">YouTube</div><div style="font-size:10px;color:#5a7fa8">'+ytLabel+'</div></div>';
+  body+='<span style="font-size:12px;color:#5a7fa8">›</span></a>';
+  body+='<a href="'+fifaUrl+'" target="_blank" style="display:flex;align-items:center;gap:10px;background:#10192a;border-radius:8px;padding:12px;text-decoration:none;border-left:3px solid #326295">';
+  body+='<span style="font-size:22px">🌐</span>';
+  body+='<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#ddeeff">FIFA.com</div><div style="font-size:10px;color:#5a7fa8">'+(lang==="lv"?"Oficiālā lapa":lang==="es"?"Sitio oficial":"Official site")+'</div></div>';
+  body+='<span style="font-size:12px;color:#5a7fa8">›</span></a>';
+  body+='</div>';
+
   // Team profile links
   body+='<div class="msec"><div style="display:flex;gap:8px">';
   body+='<button onclick="closeMatch();openTeam(\''+h+'\')" style="flex:1;background:#10192a;border:1px solid '+color+';border-radius:8px;padding:10px;color:#ddeeff;font-size:12px;cursor:pointer">'+hf+' '+tTeam(h)+' ›</button>';
