@@ -34,8 +34,9 @@ h1{font-size:22px;font-weight:900;color:#fff}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .stxt{color:#6a8ab0}
 .rbtn{background:#1a2d55;border:1px solid #2a3a5a;border-radius:6px;padding:4px 10px;color:#8fa3c8;font-size:11px;cursor:pointer}
-.tabs{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:8px 12px;background:#0d1520;border-bottom:1px solid #1a2535}
-.tab{padding:8px 2px;font-size:10px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;border:none;cursor:pointer;background:#10192a;color:#6a8ab0;border-radius:8px;text-align:center;line-height:1.3}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:8px 12px 4px;background:#0d1520}
+.tabs-row2{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:4px 12px 8px;background:#0d1520;border-bottom:1px solid #1a2535}
+.tab{padding:9px 4px;font-size:10px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;border:none;cursor:pointer;background:#10192a;color:#6a8ab0;border-radius:8px;text-align:center;line-height:1.3}
 .tab.active{background:#c8a84b;color:#0a0a14}
 .content{padding:0 16px 80px}
 .sec-title{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:12px 0 6px}
@@ -207,12 +208,14 @@ h1{font-size:22px;font-weight:900;color:#fff}
 
 <div class="tabs">
   <button class="tab active" onclick="sw('today')" data-t="tab_today">🏠<br>Šodien</button>
-  <button class="tab" onclick="sw('results')" data-t="tab_results">✅<br>Rezult.</button>
+  <button class="tab" onclick="sw('results')" data-t="tab_results">✅<br>Rezultāti</button>
   <button class="tab" onclick="sw('schedule')" data-t="tab_schedule">📅<br>Grafiks</button>
   <button class="tab" onclick="sw('standings')" data-t="tab_standings">🏆<br>Tabula</button>
+</div>
+<div class="tabs-row2">
   <button class="tab" onclick="sw('groups')" data-t="tab_groups">🌍<br>Grupas</button>
   <button class="tab" onclick="sw('stats')" data-t="tab_stats">📈<br>Stats</button>
-  <button class="tab" onclick="sw('info')">ℹ️<br>Info</button>
+  <button class="tab" onclick="sw('info')">📰<br>Ziņas</button>
 </div>
 
 <div class="content">
@@ -1001,9 +1004,13 @@ function renderInfo(){
 
   if(infoTab==="news"){
     var newsList=NEWS[lang]||NEWS.lv;
-    // Manual curated news
+    // Auto news FIRST
+    var autoTitle=lang==="lv"?"🌐 Jaunākās ziņas":lang==="es"?"🌐 Últimas noticias":"🌐 Latest news";
+    html+='<div style="font-size:10px;font-weight:800;color:#2980b9;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">'+autoTitle+'</div>';
+    html+='<div id="autoNewsContainer"><div class="loader" style="padding:20px">⏳ '+(lang==="lv"?"Ielādē ziņas...":lang==="es"?"Cargando noticias...":"Loading news...")+'</div></div>';
+    // Manual curated news SECOND
     var manualTitle=lang==="lv"?"📌 Redakcijas jaunumi":lang==="es"?"📌 Noticias editoriales":"📌 Curated news";
-    html+='<div style="font-size:10px;font-weight:800;color:#c8a84b;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">'+manualTitle+'</div>';
+    html+='<div style="font-size:10px;font-weight:800;color:#c8a84b;letter-spacing:1px;text-transform:uppercase;margin:14px 0 8px">'+manualTitle+'</div>';
     for(var i=0;i<newsList.length;i++){
       var n=newsList[i];
       html+="<div class=\"news-card\" id=\"nc"+i+"\" onclick=\"toggleNews("+i+")\">";
@@ -1013,10 +1020,6 @@ function renderInfo(){
       html+="<div class=\"news-meta\">📅 "+n.date+" · <span style=\"color:#c8a84b\">"+n.tag+"</span></div>";
       html+="<div class=\"news-body\">"+n.body+"</div></div>";
     }
-    // Auto news placeholder
-    var autoTitle=lang==="lv"?"🌐 Jaunākie starptautiskie jaunumi":lang==="es"?"🌐 Últimas noticias internacionales":"🌐 Latest international news";
-    html+='<div style="font-size:10px;font-weight:800;color:#2980b9;letter-spacing:1px;text-transform:uppercase;margin:14px 0 8px">'+autoTitle+'</div>';
-    html+='<div id="autoNewsContainer"><div class="loader" style="padding:20px">⏳ '+(lang==="lv"?"Ielādē jaunumus...":lang==="es"?"Cargando noticias...":"Loading news...")+'</div></div>';
   } else if(infoTab==="stadiums"){
     for(var i=0;i<STADIUMS.length;i++){
       var s=STADIUMS[i];
