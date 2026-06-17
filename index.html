@@ -1133,6 +1133,58 @@ function addToCalendar(home,away,utcDate,venue){
 }
 
 
+// ── FIFA RANKINGS (approx) & PREDICTION ────────────────────────────────────
+var FIFA_RANK={
+  "Argentina":1,"France":2,"Spain":3,"England":4,"Brazil":5,"Portugal":6,"Netherlands":7,"Belgium":8,
+  "Germany":9,"Croatia":10,"Italy":11,"Morocco":12,"Colombia":13,"Uruguay":14,"USA":15,"Mexico":16,
+  "Switzerland":17,"Senegal":18,"Japan":19,"Denmark":20,"Iran":21,"Austria":22,"Korea":23,"South Korea":23,
+  "Ecuador":24,"Ukraine":25,"Australia":26,"Sweden":27,"Wales":28,"Serbia":29,"Egypt":33,"Norway":35,
+  "Scotland":39,"Panama":40,"Ivory Coast":41,"Qatar":42,"Saudi Arabia":58,"Paraguay":48,"Tunisia":49,
+  "Czech Republic":36,"Algeria":37,"Nigeria":38,"Cape Verde":70,"Uzbekistan":57,"Jordan":62,"Iraq":58,
+  "New Zealand":86,"Curaçao":82,"Haiti":83,"Ghana":73,"South Africa":61,"DR Congo":56,"Bosnia and Herzegovina":74,
+  "Turkey":27,"Canada":31
+};
+
+function getPrediction(home,away,homeForm,awayForm){
+  var rh=FIFA_RANK[home]||80, ra=FIFA_RANK[away]||80;
+  // Lower rank = stronger. Convert to strength score
+  var sh=100-Math.log(rh)*15;
+  var sa=100-Math.log(ra)*15;
+  // Add form points (each win +5, draw +2)
+  sh+=homeForm*3;
+  sa+=awayForm*3;
+  // Calculate probabilities
+  var diff=sh-sa;
+  var pHome=1/(1+Math.exp(-diff/12));
+  var pAway=1/(1+Math.exp(diff/12));
+  // Draw probability (higher when teams are close)
+  var pDraw=0.26*Math.exp(-Math.abs(diff)/25);
+  // Normalize
+  var total=pHome+pAway+pDraw;
+  return {
+    home:Math.round(pHome/total*100),
+    draw:Math.round(pDraw/total*100),
+    away:Math.round(pAway/total*100)
+  };
+}
+
+function getTeamForm(team){
+  var pts=0;
+  for(var i=0;i<matches.length;i++){
+    var m=matches[i];
+    if(m.status!=="FINISHED") continue;
+    var h=norm(m.homeTeam.name), a=norm(m.awayTeam.name);
+    var sc=m.score&&m.score.fullTime?m.score.fullTime:{};
+    if(h===team){
+      if(sc.home>sc.away) pts+=2; else if(sc.home===sc.away) pts+=1;
+    } else if(a===team){
+      if(sc.away>sc.home) pts+=2; else if(sc.away===sc.home) pts+=1;
+    }
+  }
+  return pts;
+}
+
+
 // ── MATCH DETAILS ──────────────────────────────────────────────────────────
 function openMatch(id){
   var m=null;
@@ -1192,6 +1244,26 @@ function openMatch(id){
       body+='</div>';
     }
     body+='</div>';
+  }
+
+  // Prediction (for upcoming matches)
+  if(!hasScore&&grp!=="KO"){
+    var pred=getPrediction(h,a,getTeamForm(h),getTeamForm(a));
+    var predTitle=lang==="lv"?"Uzvaras prognoze":lang==="es"?"Pronóstico":"Win prediction";
+    var drawLbl=lang==="lv"?"Neizšķirts":lang==="es"?"Empate":"Draw";
+    body+='<div class="msec"><div class="mstitle" style="color:'+color+'">🔮 '+predTitle+'</div>';
+    body+='<div style="background:#10192a;border-radius:10px;padding:14px">';
+    // Home bar
+    body+='<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;color:#ddeeff">'+hf+' '+tTeam(h)+'</span><span style="font-size:13px;font-weight:800;color:#27ae60">'+pred.home+'%</span></div>';
+    body+='<div style="background:#0d1520;border-radius:4px;height:8px;overflow:hidden"><div style="width:'+pred.home+'%;height:100%;background:#27ae60;border-radius:4px"></div></div></div>';
+    // Draw bar
+    body+='<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;color:#8fa3c8">⚖️ '+drawLbl+'</span><span style="font-size:13px;font-weight:800;color:#f39c12">'+pred.draw+'%</span></div>';
+    body+='<div style="background:#0d1520;border-radius:4px;height:8px;overflow:hidden"><div style="width:'+pred.draw+'%;height:100%;background:#f39c12;border-radius:4px"></div></div></div>';
+    // Away bar
+    body+='<div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;color:#ddeeff">'+af+' '+tTeam(a)+'</span><span style="font-size:13px;font-weight:800;color:#2980b9">'+pred.away+'%</span></div>';
+    body+='<div style="background:#0d1520;border-radius:4px;height:8px;overflow:hidden"><div style="width:'+pred.away+'%;height:100%;background:#2980b9;border-radius:4px"></div></div></div>';
+    body+='<div style="font-size:9px;color:#4a6080;margin-top:10px;text-align:center">'+(lang==="lv"?"Balstīts uz FIFA rangu un formu":lang==="es"?"Basado en ranking FIFA y forma":"Based on FIFA ranking and form")+'</div>';
+    body+='</div></div>';
   }
 
   // Match info
