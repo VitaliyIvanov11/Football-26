@@ -502,7 +502,15 @@ function renderTab(){
   if(currentTab==='info')      renderInfo();
 }
 
-function todayStr(){return new Date().toLocaleDateString('sv-SE',{timeZone:USER_TZ});}
+function todayStr(){return new Date().toLocaleDateString('sv-SE',{timeZone:'UTC'});}
+
+function isToday(utcDate){
+  const today=todayStr();
+  // Also check if it's today in user's timezone
+  const todayLocal=new Date().toLocaleDateString('sv-SE',{timeZone:USER_TZ});
+  const matchDate=utcDate.slice(0,10);
+  return matchDate===today||matchDate===todayLocal;
+}
 
 function renderToday(){
   const el=document.getElementById('tab-today');
@@ -535,8 +543,8 @@ function renderToday(){
   }
 
   const live=matches.filter(m=>(m.status==='IN_PLAY'||m.status==='PAUSED')&&matchesSearch(m));
-  const todayFT=matches.filter(m=>m.utcDate.slice(0,10)===td&&m.status==='FINISHED'&&matchesSearch(m));
-  const todayNS=matches.filter(m=>m.utcDate.slice(0,10)===td&&(m.status==='TIMED'||m.status==='SCHEDULED')&&matchesSearch(m));
+  const todayFT=matches.filter(m=>isToday(m.utcDate)&&m.status==='FINISHED'&&matchesSearch(m));
+  const todayNS=matches.filter(m=>isToday(m.utcDate)&&(m.status==='TIMED'||m.status==='SCHEDULED')&&matchesSearch(m));
   if(live.length){html+=`<div class="sec-title" style="color:#27ae60">${t('sec_live')} — ${live.length}</div>`+live.map(m=>mCard(m)).join('');}
   if(todayFT.length){html+=`<div class="sec-title" style="color:#c8a84b">${t('sec_today')}</div>`+todayFT.map(m=>mCard(m)).join('');}
   if(todayNS.length){html+=`<div class="sec-title" style="color:#2980b9">${t('sec_upcoming')}</div>`+todayNS.map(m=>mCard(m)).join('');}
