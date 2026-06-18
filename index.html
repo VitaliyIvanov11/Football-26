@@ -542,9 +542,18 @@ function renderToday(){
     </div>`;
   }
 
-  const live=matches.filter(m=>(m.status==='IN_PLAY'||m.status==='PAUSED')&&matchesSearch(m));
+  const now=new Date();
+  // Time-based live detection (football-data.org free plan doesn't update IN_PLAY status)
+  function isTimeLive(m){
+    if(m.status==='IN_PLAY'||m.status==='PAUSED') return true;
+    if(m.status==='FINISHED') return false;
+    const start=new Date(m.utcDate);
+    const diffMin=(now-start)/60000;
+    return diffMin>=0&&diffMin<=115; // 0-115 min after kickoff = likely live
+  }
+  const live=matches.filter(m=>isTimeLive(m)&&matchesSearch(m));
   const todayFT=matches.filter(m=>isToday(m.utcDate)&&m.status==='FINISHED'&&matchesSearch(m));
-  const todayNS=matches.filter(m=>isToday(m.utcDate)&&(m.status==='TIMED'||m.status==='SCHEDULED')&&matchesSearch(m));
+  const todayNS=matches.filter(m=>isToday(m.utcDate)&&!isTimeLive(m)&&m.status!=='FINISHED'&&(m.status==='TIMED'||m.status==='SCHEDULED')&&matchesSearch(m));
   if(live.length){html+=`<div class="sec-title" style="color:#27ae60">${t('sec_live')} — ${live.length}</div>`+live.map(m=>mCard(m)).join('');}
   if(todayFT.length){html+=`<div class="sec-title" style="color:#c8a84b">${t('sec_today')}</div>`+todayFT.map(m=>mCard(m)).join('');}
   if(todayNS.length){html+=`<div class="sec-title" style="color:#2980b9">${t('sec_upcoming')}</div>`+todayNS.map(m=>mCard(m)).join('');}
@@ -631,14 +640,22 @@ function mCard(m){
   const s1=sc.home??null, s2=sc.away??null;
   const hasScore=s1!==null&&s2!==null&&m.status!=='TIMED'&&m.status!=='SCHEDULED'&&m.status!=='NS';
   const h1w=hasScore&&s1>s2, h2w=hasScore&&s2>s1;
-  const isLive=m.status==='IN_PLAY'||m.status==='PAUSED';
+  // Time-based live detection
+  const nowMs=Date.now();
+  const startMs=new Date(m.utcDate).getTime();
+  const diffMin=(nowMs-startMs)/60000;
+  const isTimedLive=(m.status==='TIMED'||m.status==='SCHEDULED')&&diffMin>=0&&diffMin<=115;
+  const isLive=m.status==='IN_PLAY'||m.status==='PAUSED'||isTimedLive;
   const {riga,utc,date}=formatTimes(m.utcDate);
 
   let grp='KO',color='#c8a84b';
   for(const [g,ts] of Object.entries(GROUPS_STATIC)){if(ts.includes(h)||ts.includes(a)){grp=g;color=GC[g];break;}}
 
   let badge='';
-  if(isLive) badge=`<span class="sbadge sb-live">🔴 ${m.status==='PAUSED'?'HT':((m.minute||0)+"'")} </span>`;
+  if(isLive){
+    const min=isTimedLive?Math.min(Math.round(diffMin),90):(m.minute||0);
+    badge=`<span class="sbadge sb-live">🔴 ${min>0?min+"'":"LIVE"}</span>`;
+  }
   else if(m.status==='FINISHED') badge=`<span class="sbadge sb-ft">FT</span>`;
   else badge=`<span class="sbadge sb-sched">${riga}</span>`;
 
