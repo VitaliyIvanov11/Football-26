@@ -609,6 +609,7 @@ function renderStandings(){
       </tbody></table></div>`;
     }
     html+=`</div><div class="ibox"><strong>🟢 ${t('qualify')}</strong> &nbsp;·&nbsp; <strong style="color:#f39c12">🟡 ${t('maybe')}</strong> &nbsp;·&nbsp; ${t('click_team')}</div>`;
+    html+=renderWinnerPrediction();
     html+=renderBrackets();
     el.innerHTML=html;
   } else {
@@ -838,6 +839,60 @@ const NEWS={
     {date:"07.06.2026",title:"📺 ¿Dónde ver el Mundial?",body:"Consulta tu guía de TV local. Los horarios se muestran en tu zona horaria automáticamente.",tag:"Info"}
   ]
 };
+
+function renderWinnerPrediction(){
+  // Calculate strength score for all 48 teams: FIFA rank + tournament form
+  var allTeams=[];
+  var seen={};
+  for(var g in GROUPS_STATIC){
+    var teams=GROUPS_STATIC[g];
+    for(var i=0;i<teams.length;i++){
+      var team=teams[i];
+      if(seen[team]||team.indexOf("/")>=0) continue;
+      seen[team]=true;
+      var rank=FIFA_RANK[team]||90;
+      var form=getTeamForm(team);
+      var score=100-Math.log(rank)*15+form*4;
+      allTeams.push({name:team,score:score,rank:rank,group:g});
+    }
+  }
+  allTeams.sort(function(a,b){return b.score-a.score;});
+
+  // Normalize top 8 into percentage chances
+  var top=allTeams.slice(0,8);
+  var totalScore=0;
+  for(var i=0;i<top.length;i++) totalScore+=Math.exp(top[i].score/20);
+  for(var i=0;i<top.length;i++) top[i].pct=Math.round(Math.exp(top[i].score/20)/totalScore*100);
+  // Re-normalize to sum ~100
+  var sumPct=0; for(var i=0;i<top.length;i++) sumPct+=top[i].pct;
+  if(sumPct>0&&top.length) top[0].pct+=(100-sumPct);
+
+  var title=lang==="lv"?"🔮 Čempiona prognoze":lang==="es"?"🔮 Pronóstico de campeón":"🔮 Champion prediction";
+  var subtitle=lang==="lv"?"Balstīts uz FIFA rangu un turnīra formu":lang==="es"?"Basado en ranking FIFA y forma":"Based on FIFA ranking and tournament form";
+
+  var html='<div style="margin-top:6px;margin-bottom:18px">';
+  html+='<div class="chart-title" style="color:#c8a84b">'+title+'</div>';
+  html+='<div style="font-size:10px;color:#5a7fa8;margin-bottom:12px">'+subtitle+'</div>';
+  html+='<div class="chart-card">';
+
+  var medals=["🥇","🥈","🥉"];
+  for(var i=0;i<top.length;i++){
+    var tm=top[i];
+    var color=GC[tm.group]||"#888";
+    var medal=i<3?medals[i]:"&nbsp;&nbsp;";
+    html+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:'+(i<top.length-1?"1px solid #111c2a":"none")+'">';
+    html+='<div style="font-size:16px;min-width:24px;text-align:center">'+medal+'</div>';
+    html+='<div style="font-size:22px">'+(FLAGS[tm.name]||"🌍")+'</div>';
+    html+='<div style="flex:1;cursor:pointer" onclick="openTeam(\''+tm.name+'\')">';
+    html+='<div style="font-size:13px;font-weight:800;color:#ddeeff">'+tTeam(tm.name)+'</div>';
+    html+='<div style="font-size:9px;color:#5a7fa8">FIFA #'+tm.rank+' · '+t("group")+' '+tm.group+'</div>';
+    html+='</div>';
+    html+='<div style="font-size:16px;font-weight:900;color:'+(i===0?"#c8a84b":"#8fa3c8")+'">'+tm.pct+'%</div>';
+    html+='</div>';
+  }
+  html+='</div></div>';
+  return html;
+}
 
 function renderBrackets(){
   // Knockout matches from API (stage != GROUP_STAGE)
