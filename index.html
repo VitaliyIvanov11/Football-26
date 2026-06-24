@@ -813,6 +813,41 @@ const BALLON=[
   {pos:8,flag:"🇵🇹",name:"Cristiano Ronaldo",team:"Portugāle",age:41,note:"Pēdējais PK. Meklē titulu.",odds:"15/1"}
 ];
 
+
+const BEST_PLAYERS={
+  GK:[
+    {flag:"🇸🇪",name:"N. Pope" ,club:"England / Newcastle",note:"Stabilākais vārtsargs grupu kārtā"},
+    {flag:"🇧🇷",name:"Alisson",club:"Brazīlija / Liverpool",note:"Lieliska reakcija un izejas spēle"},
+    {flag:"🇪🇸",name:"U. Simón",club:"Spānija / Athletic",note:"Pārliecinošs zem spiediena"},
+    {flag:"🇦🇷",name:"E. Martínez",club:"Argentīna / Aston Villa",note:"Pasaules kausa pieredze 2022"},
+    {flag:"🇫🇷",name:"M. Maignan",club:"Francija / AC Milan",note:"Drošs un autoritatīvs"}
+  ],
+  DEF:[
+    {flag:"🇳🇱",name:"V. van Dijk",club:"Nīderlande / Liverpool",note:"Aizsardzības līderis, lielisks gaisa spēlē"},
+    {flag:"🇫🇷",name:"W. Saliba",club:"Francija / Arsenal",note:"Ātrs, taktiski disciplinēts"},
+    {flag:"🇪🇸",name:"D. Carvajal",club:"Spānija / Real Madrid",note:"Pieredze un uzbrukuma atbalsts"},
+    {flag:"🇧🇷",name:"Marquinhos",club:"Brazīlija / PSG",note:"Vadošā figūra aizsardzībā"},
+    {flag:"🏴",name:"J. Gvardiol",club:"Horvātija / Man City",note:"Universāls, spēlē vairākās pozīcijās"},
+    {flag:"🇦🇷",name:"C. Romero",club:"Argentīna / Tottenham",note:"Agresīvs, neatlaidīgs"}
+  ],
+  MID:[
+    {flag:"🇪🇸",name:"Pedri",club:"Spānija / Barcelona",note:"Spēles diriģents, izcila bumbas kontrole"},
+    {flag:"🏴",name:"J. Bellingham",club:"Anglija / Real Madrid",note:"Vārtu draudi no viduslauka"},
+    {flag:"🇦🇷",name:"E. Fernández",club:"Argentīna / Chelsea",note:"Stabils, precīzas piespēles"},
+    {flag:"🇩🇪",name:"J. Musiala",club:"Vācija / Bayern",note:"Tehniski apdāvinātākais spēlētājs"},
+    {flag:"🇫🇷",name:"A. Tchouaméni",club:"Francija / Real Madrid",note:"Aizsardzības viduslauka stabilitāte"},
+    {flag:"🇳🇱",name:"F. de Jong",club:"Nīderlande / Barcelona",note:"Elegants spēles veidotājs"}
+  ],
+  FWD:[
+    {flag:"🇦🇷",name:"L. Messi",club:"Argentīna / Inter Miami",note:"Pēdējais Pasaules kauss, dzīvā leģenda"},
+    {flag:"🇫🇷",name:"K. Mbappé",club:"Francija / Real Madrid",note:"Pasaules ātrākais uzbrucējs"},
+    {flag:"🇧🇷",name:"Vinícius Jr.",club:"Brazīlija / Real Madrid",note:"Neparedzams, izcils 1v1"},
+    {flag:"🇪🇸",name:"L. Yamal",club:"Spānija / Barcelona",note:"Jaunākā zvaigzne, jau leģenda 17 gados"},
+    {flag:"🇳🇴",name:"E. Haaland",club:"Norvēģija / Man City",note:"Pirmais PK, vārtu guvēja instinkts"},
+    {flag:"🇵🇹",name:"C. Ronaldo",club:"Portugāle / Al-Nassr",note:"Pēdējā iespēja iegūt titulu"}
+  ]
+};
+
 const NEWS={
   lv:[
     {date:"11.06.2026",title:"🇲🇽 Meksika 2:0 Dienvidāfrika — turnīrs atklāts!",body:"Azteku stadionā Meksikas pilsētā notika turnīra atklāšanas spēle. Meksika uzvarēja 2:0 mājas fanu priekā.",tag:"Rezultāti"},
@@ -1074,10 +1109,10 @@ function renderStats(){
 
 function renderInfo(){
   var el=document.getElementById("tab-info");
-  var tabs=["news","stadiums","ballon"];
-  var lv=["📰 Jaunumi","🏟️ Stadioni","⭐ Zelta bumba"];
-  var en=["📰 News","🏟️ Stadiums","⭐ Golden Ball"];
-  var es=["📰 Noticias","🏟️ Estadios","⭐ Balón de Oro"];
+  var tabs=["news","stadiums","ballon","best"];
+  var lv=["📰 Jaunumi","🏟️ Stadioni","⭐ Zelta bumba","👕 Labākie"];
+  var en=["📰 News","🏟️ Stadiums","⭐ Golden Ball","👕 Best XI"];
+  var es=["📰 Noticias","🏟️ Estadios","⭐ Balón de Oro","👕 Mejores"];
   var labels=lang==="en"?en:lang==="es"?es:lv;
   var html="<div class=\"info-wrap\">";
   html+="<div class=\"info-tabs\">";
@@ -1146,6 +1181,31 @@ function renderInfo(){
       html+="<div class=\"ballon-stats\">⚽ "+rg+" "+glabel+" · 🎂 "+p.age+" "+agelabel+"</div>";
       html+="<div style=\"font-size:10px;color:#6a8ab0;margin-top:3px\">"+p.note+"</div>";
       html+="</div><div class=\"ballon-odds\">"+p.odds+"</div></div>";
+    }
+  } else if(infoTab==="best"){
+    var posNames={
+      lv:{GK:"🧤 Vārtsargi",DEF:"🛡️ Aizsargi",MID:"⚙️ Viduslauks",FWD:"⚡ Uzbrucēji"},
+      en:{GK:"🧤 Goalkeepers",DEF:"🛡️ Defenders",MID:"⚙️ Midfielders",FWD:"⚡ Forwards"},
+      es:{GK:"🧤 Porteros",DEF:"🛡️ Defensas",MID:"⚙️ Centrocampistas",FWD:"⚡ Delanteros"}
+    };
+    var pn=posNames[lang]||posNames.en;
+    var subtitle2=lang==="lv"?"Turnīra labākie spēlētāji pa pozīcijām":lang==="es"?"Los mejores jugadores del torneo por posición":"Tournament's best players by position";
+    html+="<div style=\"font-size:11px;color:#5a7fa8;margin-bottom:12px\">👕 "+subtitle2+"</div>";
+    var posOrder=["GK","DEF","MID","FWD"];
+    for(var pi=0;pi<posOrder.length;pi++){
+      var pos=posOrder[pi];
+      var players=BEST_PLAYERS[pos]||[];
+      html+="<div style=\"font-size:11px;font-weight:800;color:#c8a84b;letter-spacing:1px;margin:14px 0 8px\">"+pn[pos]+"</div>";
+      for(var i=0;i<players.length;i++){
+        var p=players[i];
+        html+="<div class=\"ballon-card\">";
+        html+="<div style=\"font-size:24px\">"+p.flag+"</div>";
+        html+="<div class=\"ballon-info\">";
+        html+="<div class=\"ballon-name\">"+p.name+"</div>";
+        html+="<div class=\"ballon-team\">"+p.club+"</div>";
+        html+="<div style=\"font-size:10px;color:#6a8ab0;margin-top:3px\">"+p.note+"</div>";
+        html+="</div></div>";
+      }
     }
   }
   html+="</div>";
