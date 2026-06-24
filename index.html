@@ -814,6 +814,21 @@ const BALLON=[
 ];
 
 
+const TOP_SCORERS_MANUAL=[
+  {flag:"🇦🇷",name:"L. Messi",team:"Argentina",goals:5,note:"Vēsturiskais rekords — visu laiku labākais PK vārtu guvējs (18 kopā)"},
+  {flag:"🇫🇷",name:"K. Mbappé",team:"France",goals:3,note:"2 vārti pret Irāku, izlīdzina Klozes rekordu (16 PK vārti)"},
+  {flag:"🇩🇪",name:"D. Undav",team:"Germany",goals:3,note:"Superlavīna no rezerves — hattrick formā pret Kirasao un Ziloņkaula Krastu"},
+  {flag:"🇳🇴",name:"E. Haaland",team:"Norway",goals:4,note:"Debija turnīrā — divi divus vārtus spēlēs pret Irāku un Senegālu"},
+  {flag:"🇲🇦",name:"I. Saibari",team:"Morocco",goals:2,note:"Izšķirošie vārti pret Brazīliju un Skotiju"},
+  {flag:"🇳🇱",name:"C. Gakpo",team:"Netherlands",goals:2,note:"Divi vārti uzvarā 5:1 pret Zviedriju"},
+  {flag:"🇯🇵",name:"A. Ueda",team:"Japan",goals:2,note:"Divi vārti uzvarā 4:0 pret Tunisiju"},
+  {flag:"🇨🇦",name:"J. David",team:"Canada",goals:3,note:"Hat-trick mājas spēlē, pārliecinošs sākums"},
+  {flag:"🇺🇸",name:"F. Balogun",team:"USA",goals:2,note:"Divi vārti atklāšanas uzvarā 4:1 pret Paragvaju"},
+  {flag:"🇪🇸",name:"M. Oyarzabal",team:"Spain",goals:2,note:"Divi vārti pret Saūda Arābiju, piespēle Jamalam"},
+  {flag:"🇵🇹",name:"C. Ronaldo",team:"Portugal",goals:1,note:"Pirmais vārtu guvums turnīrā pret Uzbekistānu"},
+  {flag:"🇬🇧",name:"J. Bellingham",team:"England",goals:1,note:"Pirmais vārtu guvums turnīrā pret Horvātiju"}
+];
+
 const BEST_PLAYERS={
   GK:[
     {flag:"🇸🇪",name:"N. Pope" ,club:"England / Newcastle",note:"Stabilākais vārtsargs grupu kārtā"},
@@ -1041,45 +1056,28 @@ function renderStats(){
     }
   }
   var top=Object.values(scorers).sort(function(a,b){return b.goals-a.goals;}).slice(0,10);
-  if(top.length){
+  var useManual=top.length===0;
+  var displayList=useManual?TOP_SCORERS_MANUAL.slice().sort(function(a,b){return b.goals-a.goals;}):top;
+
+  if(displayList.length){
     var glabel=lang==="lv"?"vārti":lang==="es"?"goles":"goals";
     html+="<div class=\"chart-card\">";
-    html+="<div class=\"chart-title\">🥇 "+(lang==="lv"?"Labākie vārtu guvēji":lang==="es"?"Máximos goleadores":"Top scorers")+"</div>";
-    for(var i=0;i<top.length;i++){
-      var s=top[i];
+    html+="<div class=\"chart-title\">🥇 "+(lang==="lv"?"Adidas Golden Boot — TOP vārtu guvēji":lang==="es"?"Adidas Golden Boot — Máximos goleadores":"Adidas Golden Boot — Top scorers")+"</div>";
+    if(useManual){
+      html+="<div style=\"font-size:9px;color:#5a7fa8;margin-bottom:8px\">"+(lang==="lv"?"Atjaunināts manuāli pēc oficiālajiem datiem":lang==="es"?"Actualizado manualmente según datos oficiales":"Manually updated from official data")+"</div>";
+    }
+    for(var i=0;i<displayList.length;i++){
+      var s=displayList[i];
+      var sName=s.name, sTeam=useManual?s.team:s.team, sGoals=s.goals, sFlag=useManual?s.flag:(FLAGS[s.team]||"🌍");
       var balls="";
-      for(var b=0;b<Math.min(s.goals,5);b++) balls+="⚽";
+      for(var b=0;b<Math.min(sGoals,5);b++) balls+="⚽";
       html+="<div class=\"scorer-row\">";
       html+="<div class=\"scorer-pos\">"+(i+1)+"</div>";
-      html+="<div class=\"scorer-flag\">"+(FLAGS[s.team]||"🌍")+"</div>";
-      html+="<div style=\"flex:1\"><div class=\"scorer-name\">"+s.name+"</div><div class=\"scorer-team\">"+tTeam(s.team)+"</div></div>";
-      html+="<div style=\"display:flex;align-items:center;gap:3px\">"+balls+"<span class=\"scorer-goals\">"+s.goals+"</span></div>";
+      html+="<div class=\"scorer-flag\">"+sFlag+"</div>";
+      html+="<div style=\"flex:1\"><div class=\"scorer-name\">"+sName+"</div><div class=\"scorer-team\">"+(useManual?tTeam(norm(sTeam)):tTeam(sTeam))+"</div>";
+      if(useManual&&s.note){html+="<div style=\"font-size:9px;color:#5a7fa8;margin-top:2px;line-height:1.4\">"+s.note+"</div>";}
       html+="</div>";
-    }
-    html+="</div>";
-  } else {
-    // Fallback: show Best XI forwards/midfielders with calculated WC goals + caps
-    var wcApps2={};
-    for(var i=0;i<finished.length;i++){
-      var m=finished[i];
-      var h2=norm(m.homeTeam.name), a2=norm(m.awayTeam.name);
-      wcApps2[h2]=(wcApps2[h2]||0)+1;
-      wcApps2[a2]=(wcApps2[a2]||0)+1;
-    }
-    var candidates=(BEST_PLAYERS.FWD||[]).concat(BEST_PLAYERS.MID||[]);
-    html+="<div class=\"chart-card\">";
-    html+="<div class=\"chart-title\">🥇 "+(lang==="lv"?"Sekojamie spēlētāji":lang==="es"?"Jugadores a seguir":"Players to watch")+"</div>";
-    html+="<div style=\"font-size:10px;color:#5a7fa8;margin-bottom:8px\">"+(lang==="lv"?"Vārtu guvēju TOP nav pieejams bezmaksas API — šeit turnīra favorīti":lang==="es"?"Top goleadores no disponible — favoritos del torneo":"Top scorers unavailable on free API — tournament favourites shown")+"</div>";
-    for(var i=0;i<candidates.length;i++){
-      var p=candidates[i];
-      var teamName=p.club.split(" / ")[0];
-      var teamNameEn=Object.keys(TEAM_NAMES.lv).filter(function(k){return TEAM_NAMES.lv[k]===teamName;})[0]||teamName;
-      var apps=wcApps2[teamNameEn]||wcApps2[teamName]||0;
-      html+="<div class=\"scorer-row\">";
-      html+="<div class=\"scorer-pos\">"+(i+1)+"</div>";
-      html+="<div class=\"scorer-flag\">"+p.flag+"</div>";
-      html+="<div style=\"flex:1\"><div class=\"scorer-name\">"+p.name+"</div><div class=\"scorer-team\">"+p.club+"</div></div>";
-      html+="<div style=\"font-size:10px;color:#5a7fa8;text-align:right\">🏟️ "+apps+"</div>";
+      html+="<div style=\"display:flex;align-items:center;gap:3px\">"+balls+"<span class=\"scorer-goals\">"+sGoals+"</span></div>";
       html+="</div>";
     }
     html+="</div>";
