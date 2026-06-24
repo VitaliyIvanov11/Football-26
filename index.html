@@ -1058,8 +1058,31 @@ function renderStats(){
     }
     html+="</div>";
   } else {
-    html+="<div class=\"chart-card\"><div class=\"chart-title\">🥇 "+(lang==="lv"?"Labākie vārtu guvēji":"Top scorers")+"</div>";
-    html+="<div style=\"text-align:center;padding:20px;color:#4a6080;font-size:12px\">"+(lang==="lv"?"Vārtu guvēju dati nav pieejami bezmaksas plānā":"Goal scorer data not available on free plan")+"</div></div>";
+    // Fallback: show Best XI forwards/midfielders with calculated WC goals + caps
+    var wcApps2={};
+    for(var i=0;i<finished.length;i++){
+      var m=finished[i];
+      var h2=norm(m.homeTeam.name), a2=norm(m.awayTeam.name);
+      wcApps2[h2]=(wcApps2[h2]||0)+1;
+      wcApps2[a2]=(wcApps2[a2]||0)+1;
+    }
+    var candidates=(BEST_PLAYERS.FWD||[]).concat(BEST_PLAYERS.MID||[]);
+    html+="<div class=\"chart-card\">";
+    html+="<div class=\"chart-title\">🥇 "+(lang==="lv"?"Sekojamie spēlētāji":lang==="es"?"Jugadores a seguir":"Players to watch")+"</div>";
+    html+="<div style=\"font-size:10px;color:#5a7fa8;margin-bottom:8px\">"+(lang==="lv"?"Vārtu guvēju TOP nav pieejams bezmaksas API — šeit turnīra favorīti":lang==="es"?"Top goleadores no disponible — favoritos del torneo":"Top scorers unavailable on free API — tournament favourites shown")+"</div>";
+    for(var i=0;i<candidates.length;i++){
+      var p=candidates[i];
+      var teamName=p.club.split(" / ")[0];
+      var teamNameEn=Object.keys(TEAM_NAMES.lv).filter(function(k){return TEAM_NAMES.lv[k]===teamName;})[0]||teamName;
+      var apps=wcApps2[teamNameEn]||wcApps2[teamName]||0;
+      html+="<div class=\"scorer-row\">";
+      html+="<div class=\"scorer-pos\">"+(i+1)+"</div>";
+      html+="<div class=\"scorer-flag\">"+p.flag+"</div>";
+      html+="<div style=\"flex:1\"><div class=\"scorer-name\">"+p.name+"</div><div class=\"scorer-team\">"+p.club+"</div></div>";
+      html+="<div style=\"font-size:10px;color:#5a7fa8;text-align:right\">🏟️ "+apps+"</div>";
+      html+="</div>";
+    }
+    html+="</div>";
   }
 
   // 3. Team form
