@@ -1183,6 +1183,24 @@ function renderInfo(){
       html+="</div><div class=\"ballon-odds\">"+p.odds+"</div></div>";
     }
   } else if(infoTab==="best"){
+    // Calculate live WC2026 goals from match data
+    var wcGoals={};
+    var wcApps={};
+    for(var i=0;i<matches.length;i++){
+      var m=matches[i];
+      var h=norm(m.homeTeam.name), a=norm(m.awayTeam.name);
+      if(m.status==="FINISHED"){
+        wcApps[h]=(wcApps[h]||0)+1;
+        wcApps[a]=(wcApps[a]||0)+1;
+      }
+      if(!m.goals) continue;
+      for(var j=0;j<m.goals.length;j++){
+        var g=m.goals[j];
+        if(!g.scorer||!g.scorer.name) continue;
+        wcGoals[g.scorer.name]=(wcGoals[g.scorer.name]||0)+1;
+      }
+    }
+
     var posNames={
       lv:{GK:"🧤 Vārtsargi",DEF:"🛡️ Aizsargi",MID:"⚙️ Viduslauks",FWD:"⚡ Uzbrucēji"},
       en:{GK:"🧤 Goalkeepers",DEF:"🛡️ Defenders",MID:"⚙️ Midfielders",FWD:"⚡ Forwards"},
@@ -1191,18 +1209,29 @@ function renderInfo(){
     var pn=posNames[lang]||posNames.en;
     var subtitle2=lang==="lv"?"Turnīra labākie spēlētāji pa pozīcijām":lang==="es"?"Los mejores jugadores del torneo por posición":"Tournament's best players by position";
     html+="<div style=\"font-size:11px;color:#5a7fa8;margin-bottom:12px\">👕 "+subtitle2+"</div>";
+    var glabel=lang==="lv"?"vārti WC":lang==="es"?"goles Mun.":"WC goals";
+    var alabel=lang==="lv"?"spēles":lang==="es"?"partidos":"matches";
     var posOrder=["GK","DEF","MID","FWD"];
     for(var pi=0;pi<posOrder.length;pi++){
       var pos=posOrder[pi];
-      var players=BEST_PLAYERS[pos]||[];
+      var players=(BEST_PLAYERS[pos]||[]).slice();
       html+="<div style=\"font-size:11px;font-weight:800;color:#c8a84b;letter-spacing:1px;margin:14px 0 8px\">"+pn[pos]+"</div>";
       for(var i=0;i<players.length;i++){
         var p=players[i];
+        // Extract team name from club field (e.g. "Argentina / Inter Miami")
+        var teamName=p.club.split(" / ")[0];
+        var teamNameEn=Object.keys(TEAM_NAMES.lv).filter(function(k){return TEAM_NAMES.lv[k]===teamName;})[0]||teamName;
+        var goals=wcGoals[p.name]||0;
+        var apps=wcApps[teamNameEn]||wcApps[teamName]||0;
         html+="<div class=\"ballon-card\">";
         html+="<div style=\"font-size:24px\">"+p.flag+"</div>";
         html+="<div class=\"ballon-info\">";
         html+="<div class=\"ballon-name\">"+p.name+"</div>";
         html+="<div class=\"ballon-team\">"+p.club+"</div>";
+        html+="<div style=\"display:flex;gap:10px;margin-top:4px\">";
+        html+="<span style=\"font-size:10px;color:#c8a84b;font-weight:700\">⚽ "+goals+" "+glabel+"</span>";
+        html+="<span style=\"font-size:10px;color:#5a7fa8\">🏟️ "+apps+" "+alabel+"</span>";
+        html+="</div>";
         html+="<div style=\"font-size:10px;color:#6a8ab0;margin-top:3px\">"+p.note+"</div>";
         html+="</div></div>";
       }
