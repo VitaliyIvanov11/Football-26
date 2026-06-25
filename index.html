@@ -946,19 +946,54 @@ function renderWinnerPrediction(){
   return html;
 }
 
+// Manually known Round of 32 matchups (FIFA match numbers, since API doesn't yet show team names)
+var MANUAL_R32=[
+  {match:73,date:"2026-06-28T19:00:00Z",home:"Canada",away:"South Africa",venue:"BC Place"},
+  {match:74,date:"2026-06-29T20:30:00Z",home:"Germany",away:"TBD (3rd ABCDF)",venue:"Foxborough"},
+  {match:75,date:"2026-06-30T01:00:00Z",home:"Morocco",away:"TBD (1F)",venue:"Mexico City"},
+  {match:81,date:"2026-07-02T00:00:00Z",home:"USA",away:"TBD (3rd BEFIJ)",venue:"Los Angeles"},
+  {match:83,date:"2026-07-02T23:00:00Z",home:"TBD (2K)",away:"TBD (2L)",venue:"Atlanta"},
+  {match:84,date:"2026-07-02T19:00:00Z",home:"TBD (1H)",away:"TBD (2J)",venue:"Houston"}
+];
+
 function renderBrackets(){
   // Knockout matches from API (stage != GROUP_STAGE)
   var koMatches=matches.filter(function(m){
     return m.stage&&m.stage!=="GROUP_STAGE"&&m.stage!=="REGULAR_SEASON";
   });
+  var hasRealTeams=koMatches.some(function(m){return m.homeTeam&&m.homeTeam.name;});
+
   var title=lang==="lv"?"Izslēgšanas kārta":lang==="es"?"Eliminatorias":"Knockout stage";
-  var soon=lang==="lv"?"Sākas pēc grupu kārtas (28. jūnijā)":lang==="es"?"Comienza tras la fase de grupos (28 jun)":"Starts after group stage (June 28)";
+  var soon=lang==="lv"?"Pilns sapārojums būs zināms pēc 26. jūnija":lang==="es"?"El cruce completo se conocerá tras el 26 de junio":"Full bracket confirmed after June 26";
 
   var html='<div style="margin-top:20px"><div class="chart-title" style="color:#c8a84b;margin-bottom:12px">🏆 '+title+'</div>';
 
-  if(!koMatches.length){
-    html+='<div style="background:#10192a;border-radius:10px;padding:24px;text-align:center;color:#5a7fa8;font-size:12px">⏳ '+soon+'</div>';
-    // Show bracket structure preview
+  if(!hasRealTeams){
+    // Show known confirmed matchups manually
+    var knownTitle=lang==="lv"?"✅ Zināmās 1/16 fināla spēles":lang==="es"?"✅ Partidos confirmados de 16avos":"✅ Confirmed Round of 32 matches";
+    html+='<div style="font-size:11px;font-weight:800;color:#27ae60;margin-bottom:8px">'+knownTitle+'</div>';
+    for(var i=0;i<MANUAL_R32.length;i++){
+      var mr=MANUAL_R32[i];
+      var hKnown=mr.home.indexOf("TBD")<0;
+      var aKnown=mr.away.indexOf("TBD")<0;
+      var hf2=hKnown?(FLAGS[mr.home]||"🌍"):"❓";
+      var af2=aKnown?(FLAGS[mr.away]||"🌍"):"❓";
+      var hName=hKnown?tTeam(mr.home):mr.home;
+      var aName=aKnown?tTeam(mr.away):mr.away;
+      var dt=new Date(mr.date);
+      var dateStr=dt.toLocaleDateString([],{day:"2-digit",month:"short"});
+      var timeStr=dt.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+      html+='<div class="mc" style="border-left-color:#c8a84b">';
+      html+='<div class="mc-top">';
+      html+='<div style="font-size:9px;color:#c8a84b;font-weight:800;min-width:24px">M'+mr.match+'</div>';
+      html+='<div class="tblock">';
+      html+='<div class="tline"><span class="tflag">'+hf2+'</span><span class="tname" style="font-weight:'+(hKnown?700:400)+';cursor:'+(hKnown?"pointer":"default")+'"'+(hKnown?' onclick="openTeam(\''+mr.home+'\')"':'')+'>'+hName+'</span></div>';
+      html+='<div class="tline"><span class="tflag">'+af2+'</span><span class="tname" style="font-weight:'+(aKnown?700:400)+';cursor:'+(aKnown?"pointer":"default")+'"'+(aKnown?' onclick="openTeam(\''+mr.away+'\')"':'')+'>'+aName+'</span></div>';
+      html+='</div></div>';
+      html+='<div class="mc-bot"><span class="vtxt">📍 '+mr.venue+'</span><div class="time-block"><div class="time-riga">'+dateStr+' '+timeStr+'</div></div></div>';
+      html+='</div>';
+    }
+    html+='<div style="background:#10192a;border-radius:10px;padding:14px;text-align:center;color:#5a7fa8;font-size:11px;margin-top:10px">⏳ '+soon+'</div>';
     var rounds=lang==="lv"?["1/16","1/8","1/4","1/2","Fināls"]:lang==="es"?["16avos","Octavos","Cuartos","Semis","Final"]:["R32","R16","QF","SF","Final"];
     html+='<div style="display:flex;justify-content:space-between;margin-top:14px;padding:0 4px">';
     for(var i=0;i<rounds.length;i++){
