@@ -952,12 +952,17 @@ function renderWinnerPrediction(){
 
 // Manually known Round of 32 matchups (FIFA match numbers, since API doesn't yet show team names)
 var MANUAL_R32=[
-  {match:73,date:"2026-06-28T19:00:00Z",home:"Canada",away:"South Africa",venue:"BC Place"},
-  {match:74,date:"2026-06-29T20:30:00Z",home:"Germany",away:"TBD (3rd ABCDF)",venue:"Foxborough"},
-  {match:75,date:"2026-06-30T01:00:00Z",home:"Morocco",away:"TBD (1F)",venue:"Mexico City"},
-  {match:81,date:"2026-07-02T00:00:00Z",home:"USA",away:"TBD (3rd BEFIJ)",venue:"Los Angeles"},
-  {match:83,date:"2026-07-02T23:00:00Z",home:"TBD (2K)",away:"TBD (2L)",venue:"Atlanta"},
-  {match:84,date:"2026-07-02T19:00:00Z",home:"TBD (1H)",away:"TBD (2J)",venue:"Houston"}
+  {match:73,date:"2026-06-28T19:00:00Z",home:"South Africa",away:"Canada",venue:"SoFi Stadium",confirmed:true},
+  {match:74,date:"2026-06-29T20:30:00Z",home:"Brazil",away:"Japan",venue:"NRG Stadium",confirmed:true},
+  {match:75,date:"2026-06-29T17:00:00Z",home:"Germany",away:"Paraguay",venue:"Foxborough",confirmed:true},
+  {match:76,date:"2026-06-30T21:00:00Z",home:"Netherlands",away:"Morocco",venue:"AT&T Stadium",confirmed:true},
+  {match:77,date:"2026-06-30T01:00:00Z",home:"France",away:"Sweden",venue:"Mexico City",confirmed:true},
+  {match:78,date:"2026-07-01T01:00:00Z",home:"Ivory Coast",away:"Norway",venue:"Seattle",confirmed:true},
+  {match:79,date:"2026-07-01T16:00:00Z",home:"Mexico",away:"TBD (3rd C/E/F/H/I)",venue:"Mexico City",confirmed:false},
+  {match:80,date:"2026-07-01T20:00:00Z",home:"USA",away:"Bosnia and Herzegovina",venue:"San Francisco",confirmed:true},
+  {match:81,date:"2026-07-02T00:00:00Z",home:"Belgium",away:"TBD (3rd A/E/H/I/J)",venue:"Los Angeles",confirmed:false},
+  {match:82,date:"2026-07-02T19:00:00Z",home:"Spain",away:"TBD (Austria/Algeria)",venue:"Houston",confirmed:false},
+  {match:83,date:"2026-07-02T23:00:00Z",home:"TBD (K winner)",away:"TBD (L runner-up)",venue:"Atlanta",confirmed:false}
 ];
 
 function renderBrackets(){
