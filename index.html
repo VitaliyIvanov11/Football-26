@@ -634,8 +634,42 @@ function renderGroups(){
   el.innerHTML=html;
 }
 
+// Resolve null team names using known manual R32 data (matched by FIFA match number via matchday, or by date+stage)
+function resolveTeamName(m, isHome){
+  var rawName=isHome?m.homeTeam.name:m.awayTeam.name;
+  if(rawName) return rawName;
+  // Try matching by date to MANUAL_R32
+  if(typeof MANUAL_R32!=='undefined'){
+    for(var i=0;i<MANUAL_R32.length;i++){
+      var mr=MANUAL_R32[i];
+      if(mr.date===m.utcDate){
+        var val=isHome?mr.home:mr.away;
+        if(val&&val.indexOf("TBD")<0) return val;
+      }
+    }
+  }
+  return null;
+}
+
 function mCard(m){
-  const h=norm(m.homeTeam.name), a=norm(m.awayTeam.name);
+  const hRaw=resolveTeamName(m,true), aRaw=resolveTeamName(m,false);
+  if(!hRaw||!aRaw){
+    // Unknown matchup - show placeholder card instead of "null"
+    const dt2=new Date(m.utcDate);
+    const dateStr2=dt2.toLocaleDateString([],{day:'2-digit',month:'short'});
+    const timeStr2=dt2.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    const tbdLabel=lang==='lv'?'Pretinieki vēl nav zināmi':lang==='es'?'Rivales aún desconocidos':'Opponents not yet known';
+    return `<div class="mc" style="border-left-color:#4a6080;opacity:0.6">
+      <div class="mc-top">
+        <div style="font-size:9px;color:#c8a84b;font-weight:800;min-width:24px">${t('ko')}</div>
+        <div class="tblock">
+          <div class="tline"><span class="tflag">❓</span><span class="tname" style="color:#5a7fa8">${tbdLabel}</span></div>
+        </div>
+      </div>
+      <div class="mc-bot"><span class="vtxt">📍 ${m.venue||''}</span><div class="time-block"><div class="time-riga">${dateStr2} ${timeStr2}</div></div></div>
+    </div>`;
+  }
+  const h=norm(hRaw), a=norm(aRaw);
   const hf=FLAGS[h]||'🌍', af=FLAGS[a]||'🌍';
   const sc=m.score?.fullTime||m.score?.halfTime||{};
   const s1=sc.home??null, s2=sc.away??null;
