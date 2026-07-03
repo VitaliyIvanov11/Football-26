@@ -591,6 +591,17 @@ function renderStandings(){
   const el=document.getElementById('tab-standings');
   if(Object.keys(standingsData).length){
     let html='<div style="padding-top:10px">';
+
+    // FIRST: Knockout brackets (most relevant now)
+    html+=renderBrackets();
+    html+=renderWinnerPrediction();
+
+    // THEN: Group tables (collapsible)
+    const groupTitle=lang==='lv'?'📊 Grupu kārtas tabulas':lang==='es'?'📊 Tablas de grupo':'📊 Group stage standings';
+    html+=`<div style="margin-top:20px"><div class="chart-title" style="color:#8fa3c8;cursor:pointer" onclick="toggleGroupTables(this)">
+      ${groupTitle} <span id="groupTablesArrow">▼</span>
+    </div></div>`;
+    html+=`<div id="groupTablesWrap">`;
     for(const [letter,table] of Object.entries(standingsData)){
       const color=GC[letter]||'#888';
       html+=`<div class="sg"><div class="sh">
@@ -609,8 +620,6 @@ function renderStandings(){
       </tbody></table></div>`;
     }
     html+=`</div><div class="ibox"><strong>🟢 ${t('qualify')}</strong> &nbsp;·&nbsp; <strong style="color:#f39c12">🟡 ${t('maybe')}</strong> &nbsp;·&nbsp; ${t('click_team')}</div>`;
-    html+=renderWinnerPrediction();
-    html+=renderBrackets();
     el.innerHTML=html;
   } else {
     el.innerHTML=`<div class="loader">⏳ ${t('loading')}</div>`;
@@ -1000,6 +1009,18 @@ var MANUAL_R32=[
   {match:82,date:"2026-07-02T19:00:00Z",home:"Spain",away:"TBD (Austria/Algeria)",venue:"Houston",confirmed:false},
   {match:83,date:"2026-07-02T23:00:00Z",home:"TBD (K winner)",away:"TBD (L runner-up)",venue:"Atlanta",confirmed:false}
 ];
+
+function toggleGroupTables(el){
+  var wrap=document.getElementById('groupTablesWrap');
+  var arrow=document.getElementById('groupTablesArrow');
+  if(wrap.style.display==='none'){
+    wrap.style.display='block';
+    arrow.textContent='▼';
+  } else {
+    wrap.style.display='none';
+    arrow.textContent='▶';
+  }
+}
 
 function renderBrackets(){
   // Knockout matches from API (stage != GROUP_STAGE)
