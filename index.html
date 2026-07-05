@@ -876,7 +876,9 @@ const TOP_SCORERS_MANUAL=[
   {flag:"🇵🇹",name:"C. Ronaldo",team:"Portugal",goals:2,note:"Duets pret Uzbekistānu, Portugāle turpina R16"},
   {flag:"🇺🇸",name:"F. Balogun",team:"USA",goals:2,note:"ASV uzvarēja Bosniju R32 — mājas komanda turpina!"},
   {flag:"🇧🇪",name:"R. Lukaku",team:"Belgium",goals:2,note:"Beļģija uzvarēja Senegālu papildlaikā R32"}
-]
+];
+
+function renderWinnerPrediction(){
   var seen={};
   for(var g in GROUPS_STATIC){
     var teams=GROUPS_STATIC[g];
@@ -897,7 +899,6 @@ const TOP_SCORERS_MANUAL=[
   var totalScore=0;
   for(var i=0;i<top.length;i++) totalScore+=Math.exp(top[i].score/20);
   for(var i=0;i<top.length;i++) top[i].pct=Math.round(Math.exp(top[i].score/20)/totalScore*100);
-  // Re-normalize to sum ~100
   var sumPct=0; for(var i=0;i<top.length;i++) sumPct+=top[i].pct;
   if(sumPct>0&&top.length) top[0].pct+=(100-sumPct);
 
